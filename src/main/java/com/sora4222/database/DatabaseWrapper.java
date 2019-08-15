@@ -12,8 +12,8 @@ public interface DatabaseWrapper {
     /**
      * Checks the database for a file name, returning the
      * location of the file, the name of the device,
-     * and the name as a {@link FileInformation}
-     * @return a {@link FileInformation} containing the file's information
+     * and the name as a {@link FileInformation}.
+     * @return a {@link FileInformation} containing the file's information.
      */
     List<FileInformation> checkForFile();
     
@@ -24,5 +24,11 @@ public interface DatabaseWrapper {
      */
     boolean sendFile(FileInformation infoToSend);
     
-    
+    /**
+     * Used to give the current computer name for the use of the database to
+     * keep track of active computers and their files.
+     * @param computerName Computer name that will be reported.
+     * @return A boolean declaring if the query was successful.
+     */
+    boolean currentComputerName(String computerName);
 }

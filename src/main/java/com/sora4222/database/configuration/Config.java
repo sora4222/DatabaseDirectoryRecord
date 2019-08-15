@@ -1,4 +1,4 @@
-package com.sora4222.database;
+package com.sora4222.database.configuration;
 
 
 import lombok.Getter;
