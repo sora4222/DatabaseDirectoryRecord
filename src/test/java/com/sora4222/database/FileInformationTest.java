@@ -11,9 +11,9 @@ public class FileInformationTest {
     public void testTimeIsDeclaredAndEverythingReturns(){
         LocalDateTime beforeDateTime = LocalDateTime.now();
         
-        FileInformation testInformation = new FileInformation("testName", "/full/location", "MyComputer");
+        FileInformation testInformation = new FileInformation("testName", "/full/location", "MyComputer", "md5");
         Assertions.assertEquals("testName", testInformation.getFileName());
-        Assertions.assertEquals("/full/location", testInformation.getFullLocation());
+        Assertions.assertEquals("/full/location", testInformation.getFullLocation().toString().replace("\\", "/"));
         Assertions.assertEquals("MyComputer", testInformation.getComputerName());
     
         LocalDateTime afterDateTime = LocalDateTime.now().plusSeconds(1L);
@@ -25,9 +25,9 @@ public class FileInformationTest {
     @Test
     public void testTimeIsCopiedAndEverythingReturns(){
         LocalDateTime testingTime = LocalDateTime.now();
-        FileInformation testInformation = new FileInformation("testName", "/full/location", "MyComputer", testingTime);
+        FileInformation testInformation = new FileInformation("testName", "/full/location", "MyComputer", "md5", testingTime);
         Assertions.assertEquals("testName", testInformation.getFileName());
-        Assertions.assertEquals("/full/location", testInformation.getFullLocation());
+        Assertions.assertEquals("/full/location", testInformation.getFullLocation().toString().replace("\\", "/"));
         Assertions.assertEquals("MyComputer", testInformation.getComputerName());
         
         

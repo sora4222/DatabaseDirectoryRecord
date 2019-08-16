@@ -6,8 +6,8 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
-public class DirectoryChangeLocator {
-    public DirectoryChangeLocator (final DatabaseWrapper database) {
+public class ChangeLocator {
+    public ChangeLocator (final DatabaseWrapper database) {
         throw new NotImplementedException();
     
     }

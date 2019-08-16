@@ -1,7 +1,5 @@
-package com.sora4222.database.directory;
+package com.sora4222.database;
 
-import com.sora4222.database.DatabaseWrapper;
-import com.sora4222.database.FileInformation;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
