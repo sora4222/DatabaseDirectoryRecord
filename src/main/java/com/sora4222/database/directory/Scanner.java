@@ -52,9 +52,12 @@ public class Scanner {
   }
   
   private void assertRootLocationIsDirectory(final File rootLocation) {
-    String errorMessage = String.format("The root directory '%s' is not a directory.",
-        rootLocation.getName());
-    assert rootLocation.isDirectory() : errorMessage;
+    if(!rootLocation.isDirectory()) {
+      String errorMessage = String.format("The root directory '%s' is not a directory.",
+          rootLocation.getName());
+      logger.error(errorMessage);
+      throw new AssertionError(errorMessage);
+    }
   }
   
   // The suppression is for the loop which is reported to be able to return null
@@ -74,11 +77,11 @@ public class Scanner {
   }
   
   private void addFileToList(final File fileFound) {
-    FileInformation fileInformationn = new FileInformation(
+    FileInformation fileInformation = new FileInformation(
         fileFound.getName(),
         fileFound.getAbsolutePath(),
         computerName,
         "md5");
-    filesFound.add(fileInformationn);
+    filesFound.add(fileInformation);
   }
 }

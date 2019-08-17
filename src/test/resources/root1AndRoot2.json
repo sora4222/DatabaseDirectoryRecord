@@ -1,3 +1,3 @@
 {
-  "rootLocations": ["src/test/resources/root1", "/src/test/resources/root2/"]
+  "rootLocations": ["src/test/resources/root1", "src/test/resources/root2/"]
 }

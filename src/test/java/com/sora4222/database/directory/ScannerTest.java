@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,16 +28,19 @@ public class ScannerTest {
     
     Assertions.assertFalse(scanResults.isEmpty(), "Scanner returned an empty list.");
     
-    List<String> expectedNamesResult = Arrays.asList("innerfile1.txt", "innerfile2.txt", "sharedFile.txt");
-    List<String> expectedLocationEndingsResult = Arrays.asList("src/test/resources/level1/level2/innerfile1.txt",
-      "src/test/resources/level1/level2/innerfile2.txt", "src/test/resources/sharedFile.txt");
-    
-    for (FileInformation containedFile : scanResults) {
-      Assertions.assertTrue(expectedNamesResult.contains(containedFile.getFileName()));
-      Path resultantPath = containedFile.getFullLocation();
-      Assertions.assertTrue(expectedLocationEndingsResult.contains(resultantPath.toString()
-        .replace("\\", "/")));
-    }
+    List<String> expectedNamesResult = Arrays.asList(
+        "innerfile1.txt",
+        "innerfile2.txt",
+        "sharedFile.txt",
+        "aSecondaryFile.txt");
+    List<String> expectedLocationEndingsResult = Arrays.asList(
+        "src/test/resources/root1/level1/innerfile1.txt",
+        "src/test/resources/root1/level1/innerfile2.txt",
+        "src/test/resources/root1/sharedFile.txt",
+        "src/test/resources/root1/level1/level2/aSecondaryFile.txt");
+  
+    checkScanResultsAreExpected(scanResults, expectedNamesResult, expectedLocationEndingsResult);
+  
   }
   
   @Test
@@ -49,22 +53,33 @@ public class ScannerTest {
     Assertions.assertFalse(scanResults.isEmpty(), "Scanner returned an empty list");
     
     List<String> expectedNamesResult = Arrays.asList(
-      "innerfile1.txt",
-      "innerfile2.txt",
-      "sharedFile.txt",
-      "root2file1.txt");
+        "innerfile1.txt",
+        "innerfile2.txt",
+        "sharedFile.txt",
+        "root2file1.txt",
+        "aSecondaryFile.txt");
     List<String> expectedLocationEndingsResult = Arrays.asList(
-      "src/test/resources/root1/level1/level2/innerfile1.txt",
-      "src/test/resources/root1/level1/level2/innerfile2.txt",
-      "src/test/resources/root1/sharedFile.txt",
-      "src/test/resources/root2/root2file1.txt",
-      "src/test/resources/root2/sharedFile.txt");
+        "src/test/resources/root1/level1/innerfile1.txt",
+        "src/test/resources/root1/level1/innerfile2.txt",
+        "src/test/resources/root1/level1/level2/aSecondaryFile.txt",
+        "src/test/resources/root1/sharedFile.txt",
+        "src/test/resources/root2/root2file1.txt",
+        "src/test/resources/root2/sharedFile.txt");
     
+    checkScanResultsAreExpected(scanResults, expectedNamesResult, expectedLocationEndingsResult);
+  }
+  
+  private void checkScanResultsAreExpected(List<FileInformation> scanResults, List<String> filesToCheck, List<String> locationsToCheck) {
     for (FileInformation containedFile : scanResults) {
-      Assertions.assertTrue(expectedNamesResult.contains(containedFile.getFileName()));
-      Path resultantPath = containedFile.getFullLocation();
-      Assertions.assertTrue(expectedLocationEndingsResult.contains(resultantPath.toString()
-        .replace("\\", "/")));
+      Assertions.assertTrue(filesToCheck.contains(containedFile.getFileName()),
+          String.format("The file: %s was not contained in the list of expected files", containedFile.getFileName()));
+    
+      Path relativePathFromProjectRoot = Paths.get("").toAbsolutePath().relativize(containedFile.getFullLocation());
+      Assertions.assertTrue(
+          locationsToCheck
+              .contains(relativePathFromProjectRoot.toString()
+                  .replace("\\", "/")),
+          String.format("The path: '%s' was not found in the list of expected paths", relativePathFromProjectRoot.toString()));
     }
   }
 }

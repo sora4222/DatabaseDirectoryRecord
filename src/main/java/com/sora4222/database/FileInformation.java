@@ -11,14 +11,11 @@ public class FileInformation {
   
   @Getter
   private final String fileName;
-  @Getter
-  private final Path fullLocation;
-  @Getter
-  private final String computerName;
-  @Getter
-  private final String md5;
-  @Getter
-  private final LocalDateTime creationTime;
+  
+  @Getter private final Path fullLocation;
+  @Getter private final String computerName;
+  @Getter private final String md5;
+  @Getter private final LocalDateTime creationTime;
   
   /**
    * Creates a FileInformation that will make it's own creation time,
@@ -31,7 +28,7 @@ public class FileInformation {
    */
   public FileInformation(String fileName, String fullLocation, String computerName, String md5) {
     this.fileName = fileName;
-    this.fullLocation = Paths.get(fullLocation);
+    this.fullLocation = Paths.get(fullLocation).toAbsolutePath();
     this.computerName = computerName;
     this.creationTime = LocalDateTime.now();
     this.md5 = "";
@@ -50,7 +47,7 @@ public class FileInformation {
   public FileInformation(String fileName, String fullLocation, String computerName, String md5,
                          LocalDateTime creationTime) {
     this.fileName = fileName;
-    this.fullLocation = Paths.get(fullLocation);
+    this.fullLocation = Paths.get(fullLocation).toAbsolutePath();
     this.computerName = computerName;
     this.md5 = "";
     this.creationTime = creationTime;
