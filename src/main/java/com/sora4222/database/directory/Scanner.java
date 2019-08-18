@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
+import com.sora4222.file.FileHasher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,9 +19,13 @@ public class Scanner {
   private final String computerName;
   private static final Logger logger = LogManager.getLogger();
   
+  private FileHasher fileHasher;
+  
   public Scanner() {
     filesFound = new LinkedList<>();
     this.computerName = getComputerName();
+    
+    fileHasher = new FileHasher();
   }
   
   private String getComputerName() {
@@ -29,7 +34,7 @@ public class Scanner {
     } else if (!(System.getenv("COMPUTERNAME") == null)) {
       return System.getenv("COMPUTERNAME");
     } else {
-      String message ="The computer does not have a name";
+      String message = "The computer does not have a name";
       logger.error(message);
       throw new RuntimeException(message);
     }
@@ -52,7 +57,7 @@ public class Scanner {
   }
   
   private void assertRootLocationIsDirectory(final File rootLocation) {
-    if(!rootLocation.isDirectory()) {
+    if (!rootLocation.isDirectory()) {
       String errorMessage = String.format("The root directory '%s' is not a directory.",
           rootLocation.getName());
       logger.error(errorMessage);
@@ -81,7 +86,7 @@ public class Scanner {
         fileFound.getName(),
         fileFound.getAbsolutePath(),
         computerName,
-        "md5");
+        fileHasher.hashFile(fileFound));
     filesFound.add(fileInformation);
   }
 }

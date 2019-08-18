@@ -14,7 +14,7 @@ public class FileInformation {
   
   @Getter private final Path fullLocation;
   @Getter private final String computerName;
-  @Getter private final String md5;
+  @Getter private final String fileHash;
   @Getter private final LocalDateTime creationTime;
   
   /**
@@ -24,14 +24,14 @@ public class FileInformation {
    * @param fileName     the name of the file without the location
    * @param fullLocation the full location that the file is stored at
    * @param computerName the computer name of the stored file
-   * @param md5          the md5 of the file, used to compare files
+   * @param fileHash          the md5 of the file, used to compare files
    */
-  public FileInformation(String fileName, String fullLocation, String computerName, String md5) {
+  public FileInformation(String fileName, String fullLocation, String computerName, String fileHash) {
     this.fileName = fileName;
     this.fullLocation = Paths.get(fullLocation).toAbsolutePath();
     this.computerName = computerName;
     this.creationTime = LocalDateTime.now();
-    this.md5 = "";
+    this.fileHash = fileHash;
   }
   
   /**
@@ -41,15 +41,15 @@ public class FileInformation {
    * @param fileName     the name of the file without the location
    * @param fullLocation the full location that the file is stored at
    * @param computerName the computer name of the stored file
-   * @param md5          the md5 of the file, used to compare files
+   * @param fileHash          the md5 of the file, used to compare files
    * @param creationTime the time that the file was stored into the database
    */
-  public FileInformation(String fileName, String fullLocation, String computerName, String md5,
+  public FileInformation(String fileName, String fullLocation, String computerName, String fileHash,
                          LocalDateTime creationTime) {
     this.fileName = fileName;
     this.fullLocation = Paths.get(fullLocation).toAbsolutePath();
     this.computerName = computerName;
-    this.md5 = "";
+    this.fileHash = fileHash;
     this.creationTime = creationTime;
   }
   
@@ -62,7 +62,7 @@ public class FileInformation {
     FileInformation otherFileInformation = (FileInformation) obj;
     boolean fileNameEquals = fileName.equals(otherFileInformation.getFileName());
     boolean fullLocationEquals = fullLocation.equals(otherFileInformation.getFullLocation());
-    boolean md5Equals = md5.equals(otherFileInformation.getMd5());
+    boolean md5Equals = fileHash.equals(otherFileInformation.getFileHash());
     
     return fileNameEquals && fullLocationEquals && md5Equals;
   }
