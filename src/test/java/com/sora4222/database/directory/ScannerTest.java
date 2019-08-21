@@ -37,19 +37,19 @@ public class ScannerTest {
     List<String> expectedNamesResult = Arrays.asList(
         "innerfile1.txt",
         "innerfile2.txt",
-        "sharedFile.txt",
+        "sharedFile1.txt",
         "aSecondaryFile.txt");
     List<String> expectedLocationEndingsResult = Arrays.asList(
         "src/test/resources/root1/level1/innerfile1.txt",
         "src/test/resources/root1/level1/innerfile2.txt",
-        "src/test/resources/root1/sharedFile.txt",
+        "src/test/resources/root1/sharedFile1.txt",
         "src/test/resources/root1/level1/level2/aSecondaryFile.txt");
     
     List<String> expectedHashes = new LinkedList<>(Arrays.asList(
-        "bfa128caebd14dfef2d9c18545e7031197a56601".toUpperCase(),
-        "467c9ceffdceaec8f055279d71bba127740c38a0".toUpperCase(),
-        "c7745b7d45dce6791d2f034800ea2c61d5cfc51a".toUpperCase(),
-        "60ac906cafee61392326a24bfd97c472d0e5ba71".toUpperCase()
+        "BFE2AF0EB5DD84445EDB0C57EAD3DA409223EAD2",
+        "E9CF8A147CDC5C6ACF59554854414F5C9EAAB866",
+        "B817962D80592D2DAAE997CB63F848FAD3483BDC",
+        "3C6F57DBA43DF0035A480CD9BA38CEC0289A6879"
     ));
     
     checkScanResultsAreExpected(scanResults, expectedNamesResult, expectedLocationEndingsResult);
@@ -73,7 +73,8 @@ public class ScannerTest {
     List<String> expectedNamesResult = Arrays.asList(
         "innerfile1.txt",
         "innerfile2.txt",
-        "sharedFile.txt",
+        "sharedFile1.txt",
+        "sharedFile2.txt",
         "root2file1.txt",
         "aSecondaryFile.txt");
     
@@ -81,9 +82,9 @@ public class ScannerTest {
         "src/test/resources/root1/level1/innerfile1.txt",
         "src/test/resources/root1/level1/innerfile2.txt",
         "src/test/resources/root1/level1/level2/aSecondaryFile.txt",
-        "src/test/resources/root1/sharedFile.txt",
+        "src/test/resources/root1/sharedFile1.txt",
         "src/test/resources/root2/root2file1.txt",
-        "src/test/resources/root2/sharedFile.txt");
+        "src/test/resources/root2/sharedFile2.txt");
     
     checkScanResultsAreExpected(scanResults, expectedNamesResult, expectedLocationEndingsResult);
   }
