@@ -3,6 +3,7 @@ package com.sora4222.file;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedOutputStream;
@@ -14,11 +15,18 @@ import java.util.Random;
 public class FileHasherTest {
   
   private static Logger logger = LogManager.getLogger();
+  private static File constantFile = new File("");
+  
+  @BeforeAll
+  public static void downloadConstantFile() {
+  
+  }
   
   @Test
   public void testTheHasherHashesValuesSmall() {
-    FileHasher fileHasher = new FileHasher(new File("src/test/resources/root1/sharedFile1.txt"));
-    Assertions.assertEquals("BFE2AF0EB5DD84445EDB0C57EAD3DA409223EAD2",
+    FileHasher fileHasher = new FileHasher(new File("src/test/resources/root1/sharedFile1.txt"), 1);
+    Assertions.assertEquals(1, fileHasher.getMultiplier());
+    Assertions.assertEquals("BFA128CAEBD14DFEF2D9C18545E7031197A56601",
         fileHasher.hashFile());
   }
   
