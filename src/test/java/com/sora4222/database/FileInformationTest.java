@@ -13,13 +13,13 @@ public class FileInformationTest {
         
         FileInformation testInformation = new FileInformation("testName", "/full/location", "MyComputer", "md5");
         Assertions.assertEquals("testName", testInformation.getFileName());
-        Assertions.assertEquals("/full/location", testInformation.getFullLocation().toString().replace("\\", "/"));
+        Assertions.assertTrue(testInformation.getFullLocation().toString().replace("\\", "/").contains("/full/location"));
         Assertions.assertEquals("MyComputer", testInformation.getComputerName());
     
         LocalDateTime afterDateTime = LocalDateTime.now().plusSeconds(1L);
         
-        Assertions.assertTrue(testInformation.getCreationTime().isAfter(beforeDateTime),"Date and time were not after this test was made.");
-        Assertions.assertTrue(testInformation.getCreationTime().isBefore(afterDateTime), "Date and time were after the fileInformation was made.");
+        Assertions.assertTrue(testInformation.getCreationTime().plusNanos(2000L).isAfter(beforeDateTime),"Date and time were not after this test was made.");
+        Assertions.assertTrue(testInformation.getCreationTime().minusNanos(2000L).isBefore(afterDateTime), "Date and time were after the fileInformation was made.");
     }
     
     @Test
@@ -27,7 +27,8 @@ public class FileInformationTest {
         LocalDateTime testingTime = LocalDateTime.now();
         FileInformation testInformation = new FileInformation("testName", "/full/location", "MyComputer", "md5", testingTime);
         Assertions.assertEquals("testName", testInformation.getFileName());
-        Assertions.assertEquals("/full/location", testInformation.getFullLocation().toString().replace("\\", "/"));
+        Assertions.assertTrue(
+            testInformation.getFullLocation().toString().replace("\\", "/").contains("/full/location"));
         Assertions.assertEquals("MyComputer", testInformation.getComputerName());
         
         

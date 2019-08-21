@@ -1,52 +1,107 @@
 package com.sora4222.file;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.LinkedList;
+
+import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class FileHasher {
-  MessageDigest digest;
   private static Logger logger = LogManager.getLogger();
   
-  public FileHasher() {
+  private final MessageDigest digester;
+  private final RandomAccessFile fileToHash;
+  
+  @Getter
+  private int multiplier;
+  
+  /**
+   * Creates a FileHasher that takes a number of a files bytes
+   * and calculates a cryptographic hash from it.
+   *
+   * @param fileToHash The file that will be read and hashed.
+   */
+  public FileHasher(final File fileToHash) {
+    
     try {
-      digest = MessageDigest.getInstance("SHA-1");
+      this.fileToHash = new RandomAccessFile(fileToHash, "r");
+    } catch (FileNotFoundException e) {
+      logger.fatal(e);
+      throw new RuntimeException(e);
+    }
+    logger.info(String.format("File to hash: %s, size: '%s' bytes",
+        fileToHash.getName(), fileToHash.length()));
+    setMultiplier();
+    try {
+      digester = MessageDigest.getInstance("SHA-1");
     } catch (NoSuchAlgorithmException e) {
       logger.fatal(e.getMessage());
       throw new RuntimeException(e);
     }
   }
   
+  FileHasher(final File fileToHash, final int multiplier) {
+    this(fileToHash);
+    this.multiplier = multiplier;
+  }
+  
   /**
    * Gets a cryptographic hash of a file that can be used to compare files.
-   * @param fileToHash
-   * @return
+   *
+   * @return A cryptographic hash of the file for comparison use.
    */
-  public String hashFile(final File fileToHash) {
-    InputStream fileStream = getInputStream(fileToHash);
-    DigestInputStream digestStream = new DigestInputStream(fileStream, digest);
-    DigestInputStream resultStream = readDigestStream(digestStream);
-    byte[] resultantDigest = resultStream.getMessageDigest().digest();
+  public String hashFile() {
+    digestFile();
+    byte[] resultantDigest = digester.digest();
     return HexBin.encode(resultantDigest);
   }
   
-  private DigestInputStream readDigestStream(final DigestInputStream fileStream) {
-    while (true) {
-      try {
-        if (fileStream.read() == -1) {
-          break;
-        }
-      } catch (IOException e) {
-        logger.fatal(e);
-        throw new RuntimeException(e);
+  /**
+   * Sets the multiplier, which sets how many parts of a file
+   * will be used to calculate it's checksum.
+   */
+  private void setMultiplier() {
+    int megabyte = 1000000;
+    int gigabyte = 1000000000;
+    try {
+      if (fileToHash.length() < 40000) {
+        multiplier = 1;
+      } else if (fileToHash.length() < megabyte) {
+        multiplier = 12;
+      } else if (fileToHash.length() < 100 * megabyte) {
+        multiplier = megabyte / 10;
+      } else if (fileToHash.length() <= gigabyte) {
+        multiplier = megabyte / 2;
+      } else {
+        multiplier = 100 * megabyte;
       }
+    } catch (IOException e) {
+      logger.fatal(e);
+      throw new RuntimeException(e);
     }
-    return fileStream;
+  }
+  
+  private void digestFile() {
+    long i = 0L;
+    try {
+      while (i * multiplier < fileToHash.length()) {
+        logger.debug(String.format("Location: %d, expected next location %d",
+            fileToHash.getFilePointer(), (i + 1) * multiplier));
+        
+        fileToHash.seek(i++ * multiplier);
+        digester.update(fileToHash.readByte());
+      }
+    } catch (IOException e) {
+      logger.fatal(e);
+      throw new RuntimeException(e);
+    }
   }
   
   private InputStream getInputStream(final File fileToHash) {

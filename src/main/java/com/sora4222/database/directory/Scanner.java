@@ -19,13 +19,9 @@ public class Scanner {
   private final String computerName;
   private static final Logger logger = LogManager.getLogger();
   
-  private FileHasher fileHasher;
-  
   public Scanner() {
     filesFound = new LinkedList<>();
     this.computerName = getComputerName();
-    
-    fileHasher = new FileHasher();
   }
   
   private String getComputerName() {
@@ -82,11 +78,12 @@ public class Scanner {
   }
   
   private void addFileToList(final File fileFound) {
+    FileHasher hasher = new FileHasher(fileFound);
     FileInformation fileInformation = new FileInformation(
         fileFound.getName(),
         fileFound.getAbsolutePath(),
         computerName,
-        fileHasher.hashFile(fileFound));
+        hasher.hashFile());
     filesFound.add(fileInformation);
   }
 }

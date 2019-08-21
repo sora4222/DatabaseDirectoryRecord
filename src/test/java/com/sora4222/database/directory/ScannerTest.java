@@ -5,10 +5,16 @@ import com.sora4222.database.configuration.utilityConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * I expect the scanner to be able to go through the root directories
@@ -38,21 +44,21 @@ public class ScannerTest {
         "src/test/resources/root1/level1/innerfile2.txt",
         "src/test/resources/root1/sharedFile.txt",
         "src/test/resources/root1/level1/level2/aSecondaryFile.txt");
-  
-    List<String> expectedHashes = Arrays.asList(
+    
+    List<String> expectedHashes = new LinkedList<>(Arrays.asList(
         "bfa128caebd14dfef2d9c18545e7031197a56601".toUpperCase(),
         "467c9ceffdceaec8f055279d71bba127740c38a0".toUpperCase(),
         "c7745b7d45dce6791d2f034800ea2c61d5cfc51a".toUpperCase(),
         "60ac906cafee61392326a24bfd97c472d0e5ba71".toUpperCase()
-    );
+    ));
     
     checkScanResultsAreExpected(scanResults, expectedNamesResult, expectedLocationEndingsResult);
-  
-    for(FileInformation information: scanResults) {
+    
+    for (FileInformation information : scanResults) {
       Assertions.assertTrue(expectedHashes.remove(information.getFileHash()),
           String.format("The expected file hash list does not contain: %s", information.getFileHash()));
-      Assertions.assertTrue(expectedHashes.isEmpty());
     }
+    Assertions.assertTrue(expectedHashes.isEmpty(), expectedHashes.toString());
   }
   
   @Test
@@ -86,13 +92,14 @@ public class ScannerTest {
     for (FileInformation containedFile : scanResults) {
       Assertions.assertTrue(filesToCheck.contains(containedFile.getFileName()),
           String.format("The file: %s was not contained in the list of expected files", containedFile.getFileName()));
-    
+      
       Path relativePathFromProjectRoot = Paths.get("").toAbsolutePath().relativize(containedFile.getFullLocation());
       Assertions.assertTrue(
           locationsToCheck
               .contains(relativePathFromProjectRoot.toString()
                   .replace("\\", "/")),
-          String.format("The path: '%s' was not found in the list of expected paths", relativePathFromProjectRoot.toString()));
+          String.format("The path: '%s' was not found in the list of expected paths",
+              relativePathFromProjectRoot.toString()));
     }
   }
 }
