@@ -2,13 +2,18 @@ package com.sora4222.database.directory;
 
 import com.sora4222.database.FileInformation;
 import com.sora4222.database.configuration.utilityConfig;
+import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -24,6 +29,24 @@ import java.util.Random;
  */
 @SuppressWarnings("WeakerAccess")
 public class ScannerTest {
+  private static Logger logger = LogManager.getLogger();
+  @BeforeAll
+  public static void downloadAllFiles() {
+    downloadFile("/files/aSecondaryFile.txt", "src/test/resources/root1/level1/level2/aSecondaryFile.txt");
+    downloadFile("/files/innerfile1.txt","src/test/resources/root1/level1/innerfile1.txt");
+    downloadFile("/files/innerfile2.txt","src/test/resources/root1/level1/innerfile2.txt");
+    downloadFile("/files/sharedFile1.txt","src/test/resources/root1/sharedFile1.txt");
+  }
+  
+  private static void downloadFile(String filePathToDownloadFrom, String locationToDownload) {
+    try {
+      URL conversionToUrl = new URL("https", "sora4222.com", filePathToDownloadFrom);
+      FileUtils.copyURLToFile(conversionToUrl, new File(locationToDownload));
+    } catch (IOException e) {
+      logger.error(e);
+      throw new RuntimeException(e);
+    }
+  }
   
   @Test
   public void goesThroughSingleRootDirectory() {
@@ -56,7 +79,8 @@ public class ScannerTest {
     
     for (FileInformation information : scanResults) {
       Assertions.assertTrue(expectedHashes.remove(information.getFileHash()),
-          String.format("The expected file hash list does not contain: %s", information.getFileHash()));
+          String.format("The expected file hash list does not contain: %s, Hash list: %s", information.getFileHash(),
+              expectedHashes.toString()));
     }
     Assertions.assertTrue(expectedHashes.isEmpty(), expectedHashes.toString());
   }

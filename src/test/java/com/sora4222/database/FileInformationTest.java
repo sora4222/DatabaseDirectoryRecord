@@ -1,8 +1,10 @@
 package com.sora4222.database;
 
+import com.sora4222.file.FileHasher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.time.LocalDateTime;
 
 public class FileInformationTest {
@@ -31,7 +33,15 @@ public class FileInformationTest {
             testInformation.getFullLocation().toString().replace("\\", "/").contains("/full/location"));
         Assertions.assertEquals("MyComputer", testInformation.getComputerName());
         
-        
         Assertions.assertEquals(testingTime, testInformation.getCreationTime());
+    }
+    
+    @Test
+    public void testUseOnTheSameFileTwiceIsEqual() {
+        LocalDateTime testingTime = LocalDateTime.now();
+        FileInformation testInformation1 = new FileInformation("testName", "/full/location", "MyComputer", "md5", testingTime);
+        FileInformation testInformation2 = new FileInformation("testName", "/full/location", "MyComputer", "md5", testingTime);
+        
+        Assertions.assertEquals(testInformation1, testInformation2);
     }
 }
