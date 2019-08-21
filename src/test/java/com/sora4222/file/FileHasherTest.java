@@ -18,7 +18,7 @@ public class FileHasherTest {
   @Test
   public void testTheHasherHashesValuesSmall() {
     FileHasher fileHasher = new FileHasher(new File("src/test/resources/root1/sharedFile.txt"));
-    Assertions.assertEquals("bfa128caebd14dfef2d9c18545e7031197a56601".toUpperCase(),
+    Assertions.assertEquals("BFE2AF0EB5DD84445EDB0C57EAD3DA409223EAD2",
         fileHasher.hashFile());
   }
   

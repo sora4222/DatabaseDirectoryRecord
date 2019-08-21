@@ -3,10 +3,8 @@ package com.sora4222.file;
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 
 import java.io.*;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.LinkedList;
 
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
@@ -72,7 +70,7 @@ public class FileHasher {
     int gigabyte = 1000000000;
     try {
       if (fileToHash.length() < 40000) {
-        multiplier = 1;
+        multiplier = 2;
       } else if (fileToHash.length() < megabyte) {
         multiplier = 12;
       } else if (fileToHash.length() < 100 * megabyte) {

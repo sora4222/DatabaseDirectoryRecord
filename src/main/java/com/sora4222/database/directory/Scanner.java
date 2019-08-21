@@ -3,13 +3,13 @@ package com.sora4222.database.directory;
 import com.sora4222.database.FileInformation;
 import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.Configuration;
+import com.sora4222.file.FileHasher;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sora4222.file.FileHasher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
