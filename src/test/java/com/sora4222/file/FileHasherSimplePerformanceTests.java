@@ -22,7 +22,7 @@ public class FileHasherSimplePerformanceTests {
   
   @BeforeAll
   public static void createAllTemporaryFiles() {
-    verySmallFile = FileHasherTest.createFileWithByteSize(40000 - 1, "src/test/resources/verySmallFile.txt");
+    verySmallFile = FileHasherTest.createFileWithByteSize(40000 - 1, "src/test/resources/tempVerySmallFile.txt");
     smallFile = FileHasherTest.createFileWithByteSize(1000000 - 1, "src/test/resources/tempSmallFile.txt");
     megabyteFile = FileHasherTest.createFileWithByteSize(100000000 - 1, "src/test/resources/tempMegabyteFile.txt");
     gigabyteFile = FileHasherTest.createFileWithByteSize(1000000000 - 1, "src/test/resources/tempGigaFile.txt");
@@ -31,10 +31,15 @@ public class FileHasherSimplePerformanceTests {
   
   @AfterAll
   public static void deleteAllTemporaryFiles() {
-    verySmallFile.delete();
-    smallFile.delete();
-    megabyteFile.delete();
-    gigabyteFile.delete();
+    FileHasherSimplePerformanceTests.deleteAndLog(verySmallFile);
+    FileHasherSimplePerformanceTests.deleteAndLog(smallFile);
+    FileHasherSimplePerformanceTests.deleteAndLog(megabyteFile);
+    FileHasherSimplePerformanceTests.deleteAndLog(gigabyteFile);
+  }
+  
+  public static void deleteAndLog(File fileToDelete) {
+    if(!fileToDelete.delete())
+      logger.error("very small file did not delete");
   }
   
   @Test
