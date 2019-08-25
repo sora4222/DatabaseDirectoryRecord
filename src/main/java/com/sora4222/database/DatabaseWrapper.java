@@ -10,12 +10,12 @@ import java.util.List;
  */
 public interface DatabaseWrapper {
     /**
-     * Checks the database for a file name, returning the
-     * location of the file, the name of the device,
+     * Checks the database for a file's properies, returning the
+     * location of the file, the name of the device, a hash
      * and the name as a {@link FileInformation}.
      * @return a {@link FileInformation} containing the file's information.
      */
-    List<FileInformation> checkForFile();
+    List<FileInformation> checkForFile(FileInformation fileInformation);
     
     /**
      * Sends file information to the database that is declared.

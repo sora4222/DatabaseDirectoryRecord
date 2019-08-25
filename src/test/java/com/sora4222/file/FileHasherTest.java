@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -22,7 +23,7 @@ public class FileHasherTest {
   @BeforeAll
   public static void downloadConstantFile() throws IOException {
     try {
-      final URL constantFileLocation = new URL( "https", "sora4222.com", "/files/constantFile.txt");
+      final URL constantFileLocation = new URL("https", "sora4222.com", "/files/constantFile.txt");
       FileUtils.copyURLToFile(constantFileLocation, constantFile);
     } catch (IOException e) {
       logger.fatal(e);
@@ -51,6 +52,14 @@ public class FileHasherTest {
     fileToHash.delete();
   }
   
+  @Test()
+  public void fileDoesntExist() {
+    File fileToHash = new File("");
+    Throwable exception = Assertions.assertThrows(Exception.class, () -> new FileHasher(fileToHash));
+
+    Assertions.assertTrue(exception.getCause() instanceof FileNotFoundException);
+  }
+  
   public static File createFileWithByteSize(final int size, final String fileToCreatePath) {
     File fileToCreate = new File(fileToCreatePath);
     fileToCreate.deleteOnExit();
@@ -67,7 +76,7 @@ public class FileHasherTest {
   }
   
   private static void writeRandomizedFile(final File fileToCreate, final int size) throws IOException {
-    if(fileToCreate.exists())
+    if (fileToCreate.exists())
       fileToCreate.delete();
     
     Assertions.assertTrue(fileToCreate.createNewFile());

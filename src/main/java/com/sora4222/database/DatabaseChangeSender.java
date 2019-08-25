@@ -1,15 +1,14 @@
 package com.sora4222.database;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
 public class DatabaseChangeSender {
     public DatabaseChangeSender (final DatabaseWrapper database) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
     
-    public void sendAllFiles (final List<FileInformation> directoryChanges) {
-        throw new NotImplementedException();
+    public void updateDatabase(final List<FileCommand> directoryChanges) {
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 }

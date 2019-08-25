@@ -54,6 +54,10 @@ public class FileInformation {
   }
   
   @Override
+  /**
+   * Checks the information on the files is equal
+   * Ignores time and computer location
+   */
   public boolean equals(final Object obj) {
     if (!obj.getClass().equals(FileInformation.class)) {
       return false;
@@ -65,5 +69,14 @@ public class FileInformation {
     boolean md5Equals = fileHash.equals(otherFileInformation.getFileHash());
     
     return fileNameEquals && fullLocationEquals && md5Equals;
+  }
+  
+  @Override
+  public int hashCode() {
+    int hash = 7;
+    hash = 13 * hash + fileName.hashCode();
+    hash = 13 * hash + fileHash.hashCode();
+    hash = 13 * hash + fullLocation.hashCode();
+    return hash;
   }
 }

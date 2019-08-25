@@ -39,7 +39,7 @@ public class FileHasherSimplePerformanceTests {
   
   public static void deleteAndLog(File fileToDelete) {
     if(!fileToDelete.delete())
-      logger.error("very small file did not delete");
+      logger.error("file did not delete");
   }
   
   @Test
@@ -47,7 +47,7 @@ public class FileHasherSimplePerformanceTests {
     LinkedList<Double> times = new LinkedList<>();
     for (int i = 0; i < 5; i++) {
       long timeTaken = callWithFile(verySmallFile);
-      logger.info(String.format("Time taken: '%d'", timeTaken));
+      logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
     }
     Double average = getListAverage(times);
@@ -60,7 +60,7 @@ public class FileHasherSimplePerformanceTests {
     LinkedList<Double> times = new LinkedList<>();
     for (int i = 0; i < 5; i++) {
       long timeTaken = callWithFile(smallFile);
-      logger.info(String.format("Time taken: '%d'", timeTaken));
+      logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
     }
     Double average = getListAverage(times);
@@ -73,7 +73,7 @@ public class FileHasherSimplePerformanceTests {
     LinkedList<Double> times = new LinkedList<>();
     for (int i = 0; i < 5; i++) {
       long timeTaken = callWithFile(megabyteFile);
-      logger.info(String.format("Time taken: '%d'", timeTaken));
+      logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
     }
     Double average = getListAverage(times);
@@ -86,7 +86,7 @@ public class FileHasherSimplePerformanceTests {
     LinkedList<Double> times = new LinkedList<>();
     for (int i = 0; i < 5; i++) {
       long timeTaken = callWithFile(gigabyteFile);
-      logger.info(String.format("Time taken: '%d'", timeTaken));
+      logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
     }
     Double average = getListAverage(times);
@@ -101,7 +101,7 @@ public class FileHasherSimplePerformanceTests {
   }
   
   private Double getListAverage(final LinkedList<Double> timeList) {
-    Double sum = timeList.stream().reduce(0.0, (a, b) -> {return a + b;});
+    Double sum = timeList.stream().reduce(0.0, (a, b) -> a + b);
     int count = timeList.size();
     return sum / count;
   }

@@ -1,10 +1,8 @@
 package com.sora4222.database;
 
-import com.sora4222.file.FileHasher;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 import java.time.LocalDateTime;
 
 public class FileInformationTest {
@@ -37,11 +35,30 @@ public class FileInformationTest {
     }
     
     @Test
-    public void testUseOnTheSameFileTwiceIsEqual() {
+    public void testEquals() {
         LocalDateTime testingTime = LocalDateTime.now();
         FileInformation testInformation1 = new FileInformation("testName", "/full/location", "MyComputer", "md5", testingTime);
         FileInformation testInformation2 = new FileInformation("testName", "/full/location", "MyComputer", "md5", testingTime);
         
         Assertions.assertEquals(testInformation1, testInformation2);
+        Assertions.assertEquals(testInformation1.hashCode(), testInformation2.hashCode());
+        
+        FileInformation testInformation3 = new FileInformation("testName1", "/full/location", "MyComputer", "md5", testingTime);
+        Assertions.assertNotEquals(testInformation3, testInformation1);
+        Assertions.assertNotEquals(testInformation1.hashCode(), testInformation3.hashCode());
+    
+        FileInformation testInformation4 = new FileInformation("testName", "/full/hello", "MyComputer", "md5", testingTime);
+        Assertions.assertNotEquals(testInformation4, testInformation1);
+        Assertions.assertNotEquals(testInformation4.hashCode(), testInformation1.hashCode());
+    
+        FileInformation testInformation5 = new FileInformation("testName", "/full/location", "MyComputer", "md4", testingTime);
+        Assertions.assertNotEquals(testInformation5, testInformation1);
+        Assertions.assertNotEquals(testInformation5.hashCode(), testInformation1.hashCode());
+    
+        FileInformation testInformation6 = new FileInformation("testName", "/full/location", "MyComputer6", "md5", testingTime);
+        Assertions.assertEquals(testInformation6, testInformation1);
+        Assertions.assertEquals(testInformation6.hashCode(), testInformation1.hashCode());
+        
+        Assertions.assertNotEquals(testInformation1, "S");
     }
 }

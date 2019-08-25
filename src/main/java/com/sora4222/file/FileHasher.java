@@ -72,13 +72,13 @@ public class FileHasher {
       if (fileToHash.length() < 40000) {
         multiplier = 2;
       } else if (fileToHash.length() < megabyte) {
-        multiplier = 12;
+        multiplier = 5;
       } else if (fileToHash.length() < 100 * megabyte) {
-        multiplier = megabyte / 10;
+        multiplier = megabyte / 20;
       } else if (fileToHash.length() <= gigabyte) {
-        multiplier = megabyte / 2;
+        multiplier = megabyte / 8;
       } else {
-        multiplier = 100 * megabyte;
+        multiplier = megabyte;
       }
     } catch (IOException e) {
       logger.fatal(e);
@@ -98,16 +98,6 @@ public class FileHasher {
       }
     } catch (IOException e) {
       logger.fatal(e);
-      throw new RuntimeException(e);
-    }
-  }
-  
-  private InputStream getInputStream(final File fileToHash) {
-    try {
-      return new FileInputStream(fileToHash);
-    } catch (FileNotFoundException e) {
-      logger.fatal(String.format("FileNotFoundException, the file %s, reports an error:%s",
-          fileToHash, e.getMessage()));
       throw new RuntimeException(e);
     }
   }

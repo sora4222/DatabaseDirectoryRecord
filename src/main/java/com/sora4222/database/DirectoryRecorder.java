@@ -2,7 +2,6 @@ package com.sora4222.database;
 
 import com.sora4222.database.directory.ChangeLocator;
 import com.sora4222.database.directory.Scanner;
-import org.apache.commons.lang3.NotImplementedException;
 
 import java.util.List;
 
@@ -25,15 +24,16 @@ public class DirectoryRecorder {
   }
   
   private static DatabaseWrapper loadDatabase() {
-    throw new NotImplementedException("Not currently implemented");
+    throw new UnsupportedOperationException("Not currently implemented");
   }
   
   @SuppressWarnings("InfiniteLoopStatement")
   private static void startScanning() {
     while (true) {
       List<FileInformation> filesInDirectories = scanner.scanAllDirectories();
-      List<FileInformation> directoryChanges = changeLocator.findChangesToDirectory(filesInDirectories);
-      changeSender.sendAllFiles(directoryChanges);
+      changeLocator.setFilesInDirectories(filesInDirectories);
+      List<FileCommand> directoryChanges = changeLocator.findChangesToDirectory();
+      changeSender.updateDatabase(directoryChanges);
     }
   }
 }
