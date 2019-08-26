@@ -24,6 +24,10 @@ public interface DatabaseWrapper {
      */
     boolean sendFile(FileInformation infoToSend);
     
+    boolean deleteFileRow(FileInformation fileToDelete);
+    
+    boolean updateFileRow(FileInformation fileToDelete);
+    
     /**
      * Used to give the current computer name for the use of the database to
      * keep track of active computers and their files.

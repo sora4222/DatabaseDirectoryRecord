@@ -15,13 +15,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
 
-public class FileHasherTest {
+class FileHasherTest {
   
   private static Logger logger = LogManager.getLogger();
   private static File constantFile = new File("src/test/resources/tempConstant.txt");
   
   @BeforeAll
-  public static void downloadConstantFile() throws IOException {
+  static void downloadConstantFile() throws IOException {
     try {
       final URL constantFileLocation = new URL("https", "sora4222.com", "/files/constantFile.txt");
       FileUtils.copyURLToFile(constantFileLocation, constantFile);
@@ -32,7 +32,7 @@ public class FileHasherTest {
   }
   
   @Test
-  public void testTheHasherHashesValuesSmall() {
+  void testTheHasherHashesValuesSmall() {
     FileHasher fileHasher = new FileHasher(constantFile, 1);
     Assertions.assertEquals(1, fileHasher.getMultiplier());
     Assertions.assertEquals("BFA128CAEBD14DFEF2D9C18545E7031197A56601",
@@ -40,7 +40,7 @@ public class FileHasherTest {
   }
   
   @Test
-  public void differentMultiplierResultsInDifferentValues() {
+  void differentMultiplierResultsInDifferentValues() {
     File fileToHash = createFileWithByteSize(20000, "src/test/resources/tempFileHasher.txt");
     
     FileHasher threeHundredMultiplier = new FileHasher(fileToHash, 300);
@@ -53,14 +53,14 @@ public class FileHasherTest {
   }
   
   @Test()
-  public void fileDoesntExist() {
+  void fileDoesntExist() {
     File fileToHash = new File("");
     Throwable exception = Assertions.assertThrows(Exception.class, () -> new FileHasher(fileToHash));
 
     Assertions.assertTrue(exception.getCause() instanceof FileNotFoundException);
   }
   
-  public static File createFileWithByteSize(final int size, final String fileToCreatePath) {
+  static File createFileWithByteSize(final int size, final String fileToCreatePath) {
     File fileToCreate = new File(fileToCreatePath);
     fileToCreate.deleteOnExit();
     
