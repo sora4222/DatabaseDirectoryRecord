@@ -8,17 +8,19 @@ import org.mockito.MockitoAnnotations;
 import java.util.LinkedList;
 
 import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 class DatabaseChangeSenderTest {
   @Mock
   DatabaseWrapper database;
   DatabaseChangeSender changeSender;
-  
+  LinkedList<FileCommand> fileCommands;
+  FileInformation testInfo1 = new FileInformation("aFile.txt", "/location/aFile.txt", "Hostname", "A412B43F");
+  FileInformation testInfo2 = new FileInformation("aFile.txt", "/location/aFile.txt", "Hostname", "A412B43F");
   
   @BeforeEach
   void setupDatabase() {
     MockitoAnnotations.initMocks(this);
+    fileCommands = new LinkedList<>();
   }
   
   @Test
@@ -38,15 +40,43 @@ class DatabaseChangeSenderTest {
   
   @Test
   void whenUpdateIsCalledWithAnInsertCommandTheFileIsSent() {
-  
+    changeSender = new DatabaseChangeSender(database);
+    
+    fileCommands.add(new FileCommand(testInfo1, DatabaseCommand.Insert));
+    
+    when(database.sendFile(testInfo1)).thenReturn(true);
+    changeSender.updateDatabase(fileCommands);
+    
+    verify(database, times(1)).sendFile(testInfo1);
+    verify(database, never()).deleteFileRow(testInfo1);
+    verify(database, never()).updateFileRow(testInfo1);
   }
+  
   @Test
   void whenUpdateIsCalledWithADeleteCommandTheFileIsDeleted() {
+    changeSender = new DatabaseChangeSender(database);
   
+    fileCommands.add(new FileCommand(testInfo1, DatabaseCommand.Delete));
+  
+    when(database.sendFile(testInfo1)).thenReturn(true);
+    changeSender.updateDatabase(fileCommands);
+  
+    verify(database, times(1)).deleteFileRow(testInfo1);
+    verify(database, never()).sendFile(testInfo1);
+    verify(database, never()).updateFileRow(testInfo1);
   }
   
   @Test
   void whenUpdateIsCalledWithAnUpdateTheRowIsUpdated() {
+    changeSender = new DatabaseChangeSender(database);
   
+    fileCommands.add(new FileCommand(testInfo1, DatabaseCommand.Update));
+  
+    when(database.sendFile(testInfo1)).thenReturn(true);
+    changeSender.updateDatabase(fileCommands);
+  
+    verify(database, times(1)).updateFileRow(testInfo1);
+    verify(database, never()).deleteFileRow(testInfo1);
+    verify(database, never()).sendFile(testInfo1);
   }
 }

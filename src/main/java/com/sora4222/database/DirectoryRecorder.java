@@ -1,6 +1,6 @@
 package com.sora4222.database;
 
-import com.sora4222.database.directory.ChangeLocator;
+import com.sora4222.database.directory.DatabaseChangeLocator;
 import com.sora4222.database.directory.Scanner;
 
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.List;
 public class DirectoryRecorder {
   private static DatabaseWrapper database;
   private static Scanner scanner;
-  private static ChangeLocator changeLocator;
+  private static DatabaseChangeLocator databaseChangeLocator;
   private static DatabaseChangeSender changeSender;
   
   public static void main(String[] args) {
@@ -19,7 +19,7 @@ public class DirectoryRecorder {
   private static void setupScanning() {
     database = loadDatabase();
     scanner = new Scanner();
-    changeLocator = new ChangeLocator(database);
+    databaseChangeLocator = new DatabaseChangeLocator(database);
     changeSender = new DatabaseChangeSender(database);
   }
   
@@ -31,8 +31,8 @@ public class DirectoryRecorder {
   private static void startScanning() {
     while (true) {
       List<FileInformation> filesInDirectories = scanner.scanAllDirectories();
-      changeLocator.setFilesInDirectories(filesInDirectories);
-      List<FileCommand> directoryChanges = changeLocator.findChangesToDirectory();
+      databaseChangeLocator.setFilesInDirectories(filesInDirectories);
+      List<FileCommand> directoryChanges = databaseChangeLocator.findChangesToDirectory();
       changeSender.updateDatabase(directoryChanges);
     }
   }

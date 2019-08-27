@@ -11,13 +11,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ChangeLocator {
+public class DatabaseChangeLocator {
   private final DatabaseWrapper database;
   
   @Setter
   List<FileInformation> filesInDirectories;
   
-  public ChangeLocator(final DatabaseWrapper database) {
+  public DatabaseChangeLocator(final DatabaseWrapper database) {
     this.database = database;
     this.filesInDirectories = new LinkedList<>();
   }

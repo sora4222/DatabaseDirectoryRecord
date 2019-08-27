@@ -1,6 +1,9 @@
-package com.sora4222.database;
+package com.sora4222.database.directory;
 
-import com.sora4222.database.directory.ChangeLocator;
+import com.sora4222.database.DatabaseCommand;
+import com.sora4222.database.DatabaseWrapper;
+import com.sora4222.database.FileCommand;
+import com.sora4222.database.FileInformation;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,20 +21,20 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 @SuppressWarnings("WeakerAccess")
 @ExtendWith(MockitoExtension.class)
-public class ChangeLocatorTest {
+public class DatabaseChangeLocatorTest {
   
   @Mock
   private DatabaseWrapper database;
   
   private LinkedList<FileInformation> testFiles;
   private LinkedList<FileCommand> expectedFileCommands;
-  private ChangeLocator changeLocator;
+  private DatabaseChangeLocator databaseChangeLocator;
   
   @BeforeEach
   public void createTheFakeDatabase() {
-    MockitoAnnotations.initMocks(ChangeLocator.class);
+    MockitoAnnotations.initMocks(DatabaseChangeLocator.class);
     
-    changeLocator = new ChangeLocator(database);
+    databaseChangeLocator = new DatabaseChangeLocator(database);
     
     testFiles = new LinkedList<>();
     expectedFileCommands = new LinkedList<>();
@@ -39,7 +42,7 @@ public class ChangeLocatorTest {
   
   @Test
   public void notSetChangeLocatorReturnsEmpty() {
-    Assertions.assertTrue(changeLocator.findChangesToDirectory().isEmpty());
+    Assertions.assertTrue(databaseChangeLocator.findChangesToDirectory().isEmpty());
   }
   
   @Test
@@ -56,8 +59,8 @@ public class ChangeLocatorTest {
     when(database.checkForFile(inDatabase)).thenReturn(Collections.singletonList(inDatabase));
     
     
-    changeLocator.setFilesInDirectories(testFiles);
-    Assertions.assertEquals(expectedFileCommands, changeLocator.findChangesToDirectory());
+    databaseChangeLocator.setFilesInDirectories(testFiles);
+    Assertions.assertEquals(expectedFileCommands, databaseChangeLocator.findChangesToDirectory());
   }
   
   @Test
@@ -68,9 +71,9 @@ public class ChangeLocatorTest {
     when(database.checkForFile(newLocation)).thenReturn(Collections.singletonList(originalFile));
   
     testFiles.add(newLocation);
-    changeLocator.setFilesInDirectories(testFiles);
+    databaseChangeLocator.setFilesInDirectories(testFiles);
     
-    assertThat(changeLocator.findChangesToDirectory(),
+    assertThat(databaseChangeLocator.findChangesToDirectory(),
         Matchers.containsInAnyOrder(new FileCommand(originalFile, DatabaseCommand.Delete), new FileCommand(newLocation, DatabaseCommand.Insert)));
   }
   
@@ -82,9 +85,9 @@ public class ChangeLocatorTest {
     when(database.checkForFile(newLocation)).thenReturn(Collections.singletonList(originalFile));
     
     testFiles.add(newLocation);
-    changeLocator.setFilesInDirectories(testFiles);
+    databaseChangeLocator.setFilesInDirectories(testFiles);
     
-    Assertions.assertTrue(changeLocator.findChangesToDirectory().contains(new FileCommand(newLocation, DatabaseCommand.Insert)));
+    Assertions.assertTrue(databaseChangeLocator.findChangesToDirectory().contains(new FileCommand(newLocation, DatabaseCommand.Insert)));
   }
   
   @Test
@@ -95,10 +98,10 @@ public class ChangeLocatorTest {
     when(database.checkForFile(newContentsFile)).thenReturn(Collections.singletonList(originalFile));
   
     testFiles.add(newContentsFile);
-    changeLocator.setFilesInDirectories(testFiles);
+    databaseChangeLocator.setFilesInDirectories(testFiles);
     
     expectedFileCommands.add(new FileCommand(newContentsFile, DatabaseCommand.Update));
   
-    Assertions.assertEquals(expectedFileCommands, changeLocator.findChangesToDirectory());
+    Assertions.assertEquals(expectedFileCommands, databaseChangeLocator.findChangesToDirectory());
   }
 }
