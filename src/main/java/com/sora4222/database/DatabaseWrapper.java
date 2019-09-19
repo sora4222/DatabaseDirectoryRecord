@@ -20,19 +20,24 @@ public interface DatabaseWrapper {
     /**
      * Sends file information to the database that is declared.
      * @param infoToSend contains the information of the file to send
-     * @return A boolean telling if the file has been sent successfully.
+     * @return A true value when the file has been sent successfully a false otherwise
      */
     boolean sendFile(FileInformation infoToSend);
     
     boolean deleteFileRow(FileInformation fileToDelete);
     
-    boolean updateFileRow(FileInformation fileToDelete);
+    /**
+     * Updates a database row to the new file information data
+     * @param fileToUpdate Contains the information of the updated file.
+     * @return A true value when the file has been sent successfully a false otherwise
+     */
+    boolean updateFileRow(FileInformation fileToUpdate);
     
     /**
      * Used to give the current computer name for the use of the database to
      * keep track of active computers and their files.
      * @param computerName Computer name that will be reported.
-     * @return A boolean declaring if the query was successful.
+     * @return A true value when the file has been sent successfully a false otherwise
      */
     boolean currentComputerName(String computerName);
 }

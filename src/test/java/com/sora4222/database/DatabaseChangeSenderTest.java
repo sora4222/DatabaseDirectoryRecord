@@ -58,7 +58,7 @@ class DatabaseChangeSenderTest {
   
     fileCommands.add(new FileCommand(testInfo1, DatabaseCommand.Delete));
   
-    when(database.sendFile(testInfo1)).thenReturn(true);
+    when(database.deleteFileRow(testInfo1)).thenReturn(true);
     changeSender.updateDatabase(fileCommands);
   
     verify(database, times(1)).deleteFileRow(testInfo1);
@@ -72,11 +72,12 @@ class DatabaseChangeSenderTest {
   
     fileCommands.add(new FileCommand(testInfo1, DatabaseCommand.Update));
   
-    when(database.sendFile(testInfo1)).thenReturn(true);
+    when(database.updateFileRow(testInfo1)).thenReturn(true);
     changeSender.updateDatabase(fileCommands);
   
     verify(database, times(1)).updateFileRow(testInfo1);
     verify(database, never()).deleteFileRow(testInfo1);
     verify(database, never()).sendFile(testInfo1);
   }
+  
 }
