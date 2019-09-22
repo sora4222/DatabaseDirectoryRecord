@@ -2,14 +2,18 @@ package com.sora4222.database;
 
 import com.sora4222.database.directory.DatabaseChangeLocator;
 import com.sora4222.database.directory.Scanner;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 public class DirectoryRecorder {
   private static DatabaseWrapper database;
   private static Scanner scanner;
   private static DatabaseChangeLocator databaseChangeLocator;
   private static DatabaseChangeSender changeSender;
+  private static Logger logger = LogManager.getLogger();
   
   public static void main(String[] args) {
     setupScanning();
@@ -33,7 +37,28 @@ public class DirectoryRecorder {
       List<FileInformation> filesInDirectories = scanner.scanAllDirectories();
       databaseChangeLocator.setFilesInDirectories(filesInDirectories);
       List<FileCommand> directoryChanges = databaseChangeLocator.findChangesToDirectory();
-      changeSender.updateDatabase(directoryChanges);
+      
+
+    }
+  }
+  
+  private static void updateDatabase(List<FileCommand> directoryChanges){
+    while (true) {
+      try {
+        changeSender.updateDatabase(directoryChanges);
+        break;
+      } catch (TimeoutException e) {
+        //Keep trying
+        waitAMinute();
+      }
+    }
+  }
+  
+  private static void waitAMinute(){
+    try {
+      Thread.currentThread().wait(60000);
+    } catch (InterruptedException ex) {
+      logger.error("There was an interruption whilst waiting to perform another database contact.");
     }
   }
 }

@@ -22,7 +22,7 @@ public interface DatabaseWrapper {
      * @param infoToSend contains the information of the file to send
      * @return A true value when the file has been sent successfully a false otherwise
      */
-    boolean sendFile(FileInformation infoToSend);
+    boolean insertFile(FileInformation infoToSend);
     
     boolean deleteFileRow(FileInformation fileToDelete);
     
