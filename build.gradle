@@ -16,6 +16,9 @@ repositories {
 dependencies {
     providedCompile group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
 
+    // Databases
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.17'
+
     // For Configuration
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.9.3'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.9'

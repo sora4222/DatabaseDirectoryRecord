@@ -14,6 +14,17 @@ public class Config {
   @Setter
   List<String> rootLocations;
   
+  @Getter
+  @Setter
+  String jdbcConnectionUrl;
+  
+  @Setter
+  @Getter
+  String databaseUsername;
+  
+  @Setter
+  @Getter
+  String databasePassword;
   /**
    * Gets the root locations as paths.
    * @return root locations as paths.

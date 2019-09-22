@@ -1,10 +1,12 @@
 package com.sora4222.database;
 
+import com.sora4222.database.connectors.MySqlConnector;
 import com.sora4222.database.directory.DatabaseChangeLocator;
 import com.sora4222.database.directory.Scanner;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -21,14 +23,14 @@ public class DirectoryRecorder {
   }
   
   private static void setupScanning() {
-    database = loadDatabase();
+    loadDatabase();
     scanner = new Scanner();
     databaseChangeLocator = new DatabaseChangeLocator(database);
     changeSender = new DatabaseChangeSender(database);
   }
   
-  private static DatabaseWrapper loadDatabase() {
-    throw new UnsupportedOperationException("Not currently implemented");
+  private static void loadDatabase() {
+    database = new MySqlConnector();
   }
   
   @SuppressWarnings("InfiniteLoopStatement")
@@ -37,24 +39,26 @@ public class DirectoryRecorder {
       List<FileInformation> filesInDirectories = scanner.scanAllDirectories();
       databaseChangeLocator.setFilesInDirectories(filesInDirectories);
       List<FileCommand> directoryChanges = databaseChangeLocator.findChangesToDirectory();
-      
-
+  
+      updateDatabaseAndRetry(directoryChanges);
     }
   }
   
-  private static void updateDatabase(List<FileCommand> directoryChanges){
+  private static void updateDatabaseAndRetry(final List<FileCommand> directoryChanges){
+    List<FileCommand> directoryChangesRemaining = new ArrayList<>(directoryChanges);
     while (true) {
       try {
-        changeSender.updateDatabase(directoryChanges);
+        changeSender.updateDatabase(directoryChangesRemaining);
         break;
       } catch (TimeoutException e) {
+        directoryChangesRemaining = changeSender.getDirectoryChangesLeft();
         //Keep trying
-        waitAMinute();
+        waitToRetry();
       }
     }
   }
   
-  private static void waitAMinute(){
+  private static void waitToRetry(){
     try {
       Thread.currentThread().wait(60000);
     } catch (InterruptedException ex) {
