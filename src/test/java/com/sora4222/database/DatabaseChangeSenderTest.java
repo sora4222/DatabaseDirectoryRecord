@@ -93,8 +93,6 @@ class DatabaseChangeSenderTest {
     fileCommands.add(new FileCommand(testInfo1, DatabaseCommand.Delete));
     when(database.deleteFileRow(testInfo1)).thenReturn(false);
     
-    changeSender.updateDatabase(fileCommands);
-    
     Assertions.assertThrows(TimeoutException.class, () -> changeSender.updateDatabase(fileCommands));
   }
   
