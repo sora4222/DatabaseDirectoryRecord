@@ -44,7 +44,7 @@ public class MySqlConnector implements DatabaseWrapper {
     try {
       // FileName,
       PreparedStatement selectStatement =
-          connect.prepareStatement("SELECT * FROM FilesDatabase WHERE FileName=? OR FileHash=?");
+          connect.prepareStatement("SELECT * FROM directory_records WHERE FileName=? OR FileHash=?");
       
       selectStatement.setString(1, fileInformation.getFileName());
       selectStatement.setString(1, fileInformation.getFileHash());
