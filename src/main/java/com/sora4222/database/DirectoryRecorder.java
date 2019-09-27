@@ -3,6 +3,7 @@ package com.sora4222.database;
 import com.sora4222.database.connectors.MySqlConnector;
 import com.sora4222.database.directory.DatabaseChangeLocator;
 import com.sora4222.database.directory.Scanner;
+import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

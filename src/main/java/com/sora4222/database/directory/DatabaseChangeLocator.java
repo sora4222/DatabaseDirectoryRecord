@@ -3,7 +3,7 @@ package com.sora4222.database.directory;
 import com.sora4222.database.DatabaseCommand;
 import com.sora4222.database.DatabaseWrapper;
 import com.sora4222.database.FileCommand;
-import com.sora4222.database.FileInformation;
+import com.sora4222.file.FileInformation;
 import lombok.Setter;
 
 import java.io.File;

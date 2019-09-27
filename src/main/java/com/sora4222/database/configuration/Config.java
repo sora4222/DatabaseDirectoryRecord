@@ -16,15 +16,20 @@ public class Config {
   
   @Getter
   @Setter
-  String jdbcConnectionUrl;
+  String jdbcConnectionUrl = "";
   
   @Setter
   @Getter
-  String databaseUsername;
+  String databaseUsername = "";
   
   @Setter
   @Getter
-  String databasePassword;
+  String databasePassword = "";
+
+  @Getter
+  @Setter
+  String dataTable = "";
+
   /**
    * Gets the root locations as paths.
    * @return root locations as paths.

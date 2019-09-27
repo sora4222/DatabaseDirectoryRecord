@@ -1,4 +1,4 @@
-package com.sora4222.database;
+package com.sora4222.file;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,24 +53,24 @@ public class FileInformation {
     this.creationTime = creationTime;
   }
   
-  @Override
   /**
    * Checks the information on the files is equal
    * Ignores time and computer location
    */
+  @Override
   public boolean equals(final Object obj) {
     if (!obj.getClass().equals(FileInformation.class)) {
       return false;
     }
-    
+
     FileInformation otherFileInformation = (FileInformation) obj;
     boolean fileNameEquals = fileName.equals(otherFileInformation.getFileName());
     boolean fullLocationEquals = fullLocation.equals(otherFileInformation.getFullLocation());
     boolean md5Equals = fileHash.equals(otherFileInformation.getFileHash());
-    
+
     return fileNameEquals && fullLocationEquals && md5Equals;
   }
-  
+
   @Override
   public int hashCode() {
     int hash = 7;

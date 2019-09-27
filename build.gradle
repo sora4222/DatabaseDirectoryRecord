@@ -47,8 +47,14 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    systemProperty "databasePassword", System.getProperty("databasePassword")
+    systemProperty "databaseUsername", System.getProperty("databaseUsername")
+    systemProperty "jdbcConnectionUrl", System.getProperty("jdbcConnectionUrl")
+    systemProperty "dataTable", System.getProperty("dataTable")
+    
     minHeapSize = "256m"
     maxHeapSize = "4g"
+    
+    useJUnitPlatform()
 }
 

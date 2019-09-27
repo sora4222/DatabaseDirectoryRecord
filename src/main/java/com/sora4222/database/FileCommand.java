@@ -1,5 +1,6 @@
 package com.sora4222.database;
 
+import com.sora4222.file.FileInformation;
 import lombok.Getter;
 import lombok.Setter;
 
