@@ -34,12 +34,4 @@ public interface DatabaseWrapper {
      * @return A true value when the file has been sent successfully a false otherwise
      */
     boolean updateFileRow(FileInformation fileToUpdate);
-    
-    /**
-     * Used to give the current computer name for the use of the database to
-     * keep track of active computers and their files.
-     * @param computerName Computer name that will be reported.
-     * @return A true value when the file has been sent successfully a false otherwise
-     */
-    boolean currentComputerName(String computerName);
 }

@@ -72,6 +72,12 @@ public class FileInformation {
   }
 
   @Override
+  public String toString() {
+    return String.format("Name: %s, Path:%s, Computer name: %s, File hash: %s",
+        fileName, fullLocation.toString(),  computerName, fileHash);
+  }
+  
+  @Override
   public int hashCode() {
     int hash = 7;
     hash = 13 * hash + fileName.hashCode();

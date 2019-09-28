@@ -62,11 +62,10 @@ public class DatabaseChangeLocator {
   private boolean isFileInDirectoryChangedFile(final FileInformation fileInADirectory,
                                                final List<FileInformation> receivedFileList) {
     return receivedFileList.parallelStream()
-        .anyMatch(fileInformation ->
-            fileInADirectory.getFileName().equals(fileInformation.getFileName()) &&
-                fileInADirectory.getComputerName().equals(fileInformation.getComputerName()) &&
-                fileInADirectory.getFullLocation().equals(fileInformation.getFullLocation()) &&
-                !fileInADirectory.getFileHash().equals(fileInformation.getFileHash()));
+        .anyMatch(fileFromDatabase ->
+                fileInADirectory.getComputerName().equals(fileFromDatabase.getComputerName()) &&
+                fileInADirectory.getFullLocation().equals(fileFromDatabase.getFullLocation()) &&
+                !fileInADirectory.getFileHash().equals(fileFromDatabase.getFileHash()));
   }
   
   private LinkedList<FileCommand> processDatabaseReturnedFiles(final FileInformation fileInADirectory, final List<FileInformation> receivedFileList) {

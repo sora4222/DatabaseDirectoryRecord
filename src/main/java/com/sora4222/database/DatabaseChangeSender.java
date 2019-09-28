@@ -48,20 +48,26 @@ public class DatabaseChangeSender {
   private void tryToPerformDatabaseAction(
       final Function<FileInformation, Boolean> action,
       final FileCommand currentFileCommand) throws TimeoutException {
+    
     int i = 0;
     while (!action.apply(currentFileCommand.information)) {
-      if (i > 10) {
+      if (i >= 10) {
         String errorMessage =
             String.format("Retries have been exhausted updating file information: %s", currentFileCommand.toString());
         logger.error(errorMessage);
         throw new TimeoutException(errorMessage);
       }
-      try {
-        Thread.sleep(i++ * 100);
-      } catch (InterruptedException e) {
-        logger.error("An interruption error has occurred whilst attempting to update a file.", e);
-        throw new RuntimeException(e);
-      }
+      i = waitBeforeRetry(i);
     }
+  }
+  
+  private int waitBeforeRetry(int iterationsOfRetries) {
+    try {
+      Thread.sleep(iterationsOfRetries++ * 100);
+    } catch (InterruptedException e) {
+      logger.error("An interruption error has occurred whilst attempting to update a file.", e);
+      throw new RuntimeException(e);
+    }
+    return iterationsOfRetries;
   }
 }

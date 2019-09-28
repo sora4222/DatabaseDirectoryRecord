@@ -38,7 +38,7 @@ public class MySqlConnector implements DatabaseWrapper {
             config.getDatabasePassword());
         break;
       } catch (SQLException e) {
-        logger.error(String.format("The MySQL database cannot be connected to. URI: %s\nError: %s",
+        logger.error(String.format("The MySQL database cannot be connected to URI: %s\nError: %s",
             config.getJdbcConnectionUrl(), e.getMessage()));
       }
     }
@@ -47,7 +47,7 @@ public class MySqlConnector implements DatabaseWrapper {
   private void backOffConnectionAttempts(int numberOfConnectionAttempts) {
     if (numberOfConnectionAttempts > 1) {
       try {
-        if (numberOfConnectionAttempts < 10)
+        if (numberOfConnectionAttempts <= 10)
           Thread.currentThread().wait(100 * (long) Math.exp(numberOfConnectionAttempts));
         else
           Thread.currentThread().wait(3600000); // Wait an hour
@@ -61,19 +61,38 @@ public class MySqlConnector implements DatabaseWrapper {
   public List<FileInformation> checkForFile(final FileInformation fileInformation) {
     List<FileInformation> fileInformations = new LinkedList<>();
     try {
+      checkAndHandleDeadConnection();
       PreparedStatement selectStatement =
-          connect.prepareStatement("SELECT * FROM `" + config.getDataTable() + "` WHERE FileName=? OR FileHash=?");
+          connect.prepareStatement("SELECT * FROM `" + config.getDataTable() +
+              "` WHERE (FileName=? OR FileHash=? OR FilePath=?) AND ComputerName=?");
       
       selectStatement.setString(1, fileInformation.getFileName());
       selectStatement.setString(2, fileInformation.getFileHash());
-      
+      selectStatement.setString(3, fileInformation.getFullLocation().toString());
+      selectStatement.setString(4, fileInformation.getComputerName());
+  
+  
       ResultSet resultSet = selectStatement.executeQuery();
       
       fileInformations = convertResultSetToFileInformationList(resultSet);
     } catch (SQLException e) {
+      
       logger.error("An SQL error was thrown checking for the file: " + fileInformation.getFullLocation(), e);
     }
     return fileInformations;
+  }
+  
+  private void checkAndHandleDeadConnection() throws SQLException {
+    if(connect.isValid(35)) {
+      try {
+        connect = DriverManager.getConnection(config.getJdbcConnectionUrl() + "?serverTimezone=Australia/Melbourne",
+            config.getDatabaseUsername(),
+            config.getDatabasePassword());
+      } catch (SQLException e) {
+        logger.error("The database whilst attempting to reconnect the database has failed.");
+        throw e;
+      }
+    }
   }
   
   private List<FileInformation> convertResultSetToFileInformationList(final ResultSet resultSet) throws SQLException {
@@ -93,9 +112,11 @@ public class MySqlConnector implements DatabaseWrapper {
     String query = "insert into `" + config.getDataTable() + "` (FileName, FilePath, FileHash, ComputerName) " +
         "VALUES (?, ?, ?, ?)";
     try {
+      checkAndHandleDeadConnection();
+  
       PreparedStatement insertQuery = connect.prepareStatement(query);
       insertQuery.setString(1, infoToSend.getFileName());
-      insertQuery.setString(2, infoToSend.getFullLocation().toAbsolutePath().toString());
+      insertQuery.setString(2, infoToSend.getFullLocation().toString());
       insertQuery.setString(3, infoToSend.getFileHash());
       insertQuery.setString(4, infoToSend.getComputerName());
       
@@ -126,16 +147,38 @@ public class MySqlConnector implements DatabaseWrapper {
   
   @Override
   public boolean deleteFileRow(final FileInformation fileToDelete) {
-    return false;
+    try {
+      checkAndHandleDeadConnection();
+      PreparedStatement deleteStatement =
+          connect.prepareStatement("DELETE FROM `" + config.getDataTable() + "` WHERE ComputerName=? AND FilePath=?");
+      deleteStatement.setString(1, fileToDelete.getComputerName());
+      deleteStatement.setString(2, fileToDelete.getFullLocation().toString());
+      
+      deleteStatement.executeUpdate();
+      
+    } catch (SQLException e) {
+      logger.error("An error has occurred deleting a row", e);
+      return false;
+    }
+    return true;
   }
   
   @Override
   public boolean updateFileRow(final FileInformation fileToUpdate) {
-    return false;
-  }
-  
-  @Override
-  public boolean currentComputerName(final String computerName) {
-    return false;
+    try{
+      checkAndHandleDeadConnection();
+      PreparedStatement  updateStatement = connect.prepareStatement("UPDATE `" + config.getDataTable() +
+          "` SET FileHash=? WHERE ComputerName=?  AND FileName=?");
+      
+      updateStatement.setString(1, fileToUpdate.getFileHash());
+      updateStatement.setString(2, fileToUpdate.getComputerName());
+      updateStatement.setString(3, fileToUpdate.getFileName());
+      
+      updateStatement.executeUpdate();
+    } catch (SQLException e) {
+      logger.error("An error has occurred updating a row.", e);
+      return false;
+    }
+    return true;
   }
 }
