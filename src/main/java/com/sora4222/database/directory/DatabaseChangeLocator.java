@@ -68,7 +68,8 @@ public class DatabaseChangeLocator {
                 !fileInADirectory.getFileHash().equals(fileFromDatabase.getFileHash()));
   }
   
-  private LinkedList<FileCommand> processDatabaseReturnedFiles(final FileInformation fileInADirectory, final List<FileInformation> receivedFileList) {
+  private LinkedList<FileCommand> processDatabaseReturnedFiles(final FileInformation fileInADirectory,
+                                                               final List<FileInformation> receivedFileList) {
     List<FileInformation> movedFiles = receivedFileList.parallelStream()
         .filter(fileInformation -> fileInformation.getComputerName().equals(fileInADirectory.getComputerName()))
         .filter(fileInformation -> fileInformation.getFileHash().equals(fileInADirectory.getFileHash()))

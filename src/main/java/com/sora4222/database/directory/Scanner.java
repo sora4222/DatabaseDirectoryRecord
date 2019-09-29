@@ -24,13 +24,16 @@ public class Scanner {
     public Scanner() {
         filesFound = new LinkedList<>();
         this.computerName = getComputerName();
+        assert computerName != null;
     }
 
     private String getComputerName() {
         String linuxHostname =  getLinuxHostname();
         if (!linuxHostname.isEmpty()) {
-            return System.getenv("HOSTNAME");
+            logger.info("Linux hostname: " + linuxHostname);
+            return linuxHostname;
         } else if (!(System.getenv("COMPUTERNAME") == null)) {
+            logger.info("Windows hostname: " + System.getenv("COMPUTERNAME"));
             return System.getenv("COMPUTERNAME");
         } else {
             String message = "The computer does not have a name";

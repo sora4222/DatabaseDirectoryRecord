@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MySqlConnector implements DatabaseWrapper {
   private static final Logger logger = LogManager.getLogger();
@@ -48,9 +49,9 @@ public class MySqlConnector implements DatabaseWrapper {
     if (numberOfConnectionAttempts > 1) {
       try {
         if (numberOfConnectionAttempts <= 10)
-          Thread.currentThread().wait(100 * (long) Math.exp(numberOfConnectionAttempts));
+          TimeUnit.MILLISECONDS.sleep(100 * (long) Math.exp(numberOfConnectionAttempts));
         else
-          Thread.currentThread().wait(3600000); // Wait an hour
+          TimeUnit.HOURS.sleep(1);
       } catch (InterruptedException e) {
         logger.error("An interrupted exception occurred whilst backing off the number of connection attempts.", e);
       }
@@ -61,6 +62,7 @@ public class MySqlConnector implements DatabaseWrapper {
   public List<FileInformation> checkForFile(final FileInformation fileInformation) {
     List<FileInformation> fileInformations = new LinkedList<>();
     try {
+      assert fileInformation.getComputerName() != null;
       checkAndHandleDeadConnection();
       PreparedStatement selectStatement =
           connect.prepareStatement("SELECT * FROM `" + config.getDataTable() +
