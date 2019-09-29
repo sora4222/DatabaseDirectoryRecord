@@ -3,6 +3,8 @@
 # Compiled class file
 *.class
 
+codemr/
+
 # Log file
 *.log
 *temp*.txt
