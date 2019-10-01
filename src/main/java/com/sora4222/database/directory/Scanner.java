@@ -8,9 +8,12 @@ import com.sora4222.file.FileHasher;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,6 +28,8 @@ public class Scanner {
         filesFound = new LinkedList<>();
         this.computerName = getComputerName();
         assert computerName != null;
+
+
     }
 
     private String getComputerName() {
@@ -63,7 +68,7 @@ public class Scanner {
      *
      * @return A list of all the files contained in root or sub-directories
      */
-    @SuppressWarnings("ReturnPrivateMutableField")
+    @SuppressWarnings({"ReturnPrivateMutableField", "DeprecatedIsStillUsed"})
     public List<FileInformation> scanAllDirectories() {
         for (Path rootLocation : config.getRootLocationsAsPaths()) {
             File rootLocationAsFile = rootLocation.toFile();
