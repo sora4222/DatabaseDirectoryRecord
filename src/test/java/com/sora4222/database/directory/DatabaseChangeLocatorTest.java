@@ -47,8 +47,8 @@ public class DatabaseChangeLocatorTest {
   
   @Test
   public void setChangeLocatorListTwoItemAndOneNotStoredInDatabaseReturnsTheFileCommand() {
-    FileInformation notInDatabase = new FileInformation("aFile.txt", "/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation inDatabase = new FileInformation("anExistingFile.txt", "/a/location/anExistingFile.txt", "Hostname", "1B3C8");
+    FileInformation notInDatabase = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
+    FileInformation inDatabase = new FileInformation("/a/location/anExistingFile.txt", "Hostname", "1B3C8");
     
     testFiles.add(notInDatabase);
     testFiles.add(inDatabase);
@@ -65,8 +65,8 @@ public class DatabaseChangeLocatorTest {
   
   @Test
   public void aFileHasBeenMovedToADifferentLocationNoChanges() {
-    FileInformation originalFile = new FileInformation("aFile.txt", "/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation newLocation = new FileInformation("aFile.txt", "/a/new/aFile.txt", "Hostname", "123AF");
+    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
+    FileInformation newLocation = new FileInformation("/a/new/aFile.txt", "Hostname", "123AF");
     
     when(database.checkForFile(newLocation)).thenReturn(Collections.singletonList(originalFile));
   
@@ -79,8 +79,8 @@ public class DatabaseChangeLocatorTest {
   
   @Test
   public void aFileHasBeenMovedToADifferentLocationHostnameIsDifferent() {
-    FileInformation originalFile = new FileInformation("aFile.txt", "/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation newLocation = new FileInformation("aFile.txt", "/a/new/aFile.txt", "ANewComputer", "123AF");
+    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
+    FileInformation newLocation = new FileInformation("/a/new/aFile.txt", "ANewComputer", "123AF");
     
     when(database.checkForFile(newLocation)).thenReturn(Collections.singletonList(originalFile));
     
@@ -92,8 +92,8 @@ public class DatabaseChangeLocatorTest {
   
   @Test
   public void aFileHasHadItsContentsChanged() {
-    FileInformation originalFile = new FileInformation("aFile.txt", "/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation newContentsFile = new FileInformation("aFile.txt", "/a/location/aFile.txt", "Hostname", "546AF");
+    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
+    FileInformation newContentsFile = new FileInformation("/a/location/aFile.txt", "Hostname", "546AF");
   
     when(database.checkForFile(newContentsFile)).thenReturn(Collections.singletonList(originalFile));
   

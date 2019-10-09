@@ -1,15 +1,21 @@
 package com.sora4222.database.configuration;
 
+import com.google.common.base.Suppliers;
+import com.google.common.cache.CacheLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class ComputerProperties {
     private static Logger logger = LogManager.getLogger();
+    public static Supplier<String> computerName =
+      Suppliers.memoizeWithExpiration(ComputerProperties::getComputerName, 2, TimeUnit.HOURS);
 
-    public static String getComputerName () {
+    private static String getComputerName () {
         String linuxHostname =  getLinuxHostname();
         if (!linuxHostname.isEmpty()) {
             logger.info("Linux hostname: " + linuxHostname);

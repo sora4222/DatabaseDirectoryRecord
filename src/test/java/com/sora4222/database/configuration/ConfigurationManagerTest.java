@@ -8,7 +8,7 @@ import java.util.List;
 
 @SuppressWarnings("ALL")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class ConfigurationTest {
+public class ConfigurationManagerTest {
   private static String LOCATION_OF_TEST_CONFIG_FAKE_VALUES = "src/test/resources/filledConfigFile.json";
   private static List<String> LOCATIONS_IN_TEST_CONFIG = Arrays.asList("/location/1",
     "/location/that/I/endWith/forwardSlash/");
@@ -26,7 +26,7 @@ public class ConfigurationTest {
   @Order(1)
   public void testConfigurationInstantiates(){
     System.setProperty("config", LOCATION_OF_TEST_CONFIG_FAKE_VALUES);
-    Config configFile = Configuration.getConfiguration();
+    Config configFile = ConfigurationManager.getConfiguration();
     Assertions.assertEquals(LOCATIONS_IN_TEST_CONFIG, configFile.getRootLocations(),
       "The locations listed are not as expected.");
   }
@@ -34,15 +34,15 @@ public class ConfigurationTest {
   @Test
   @Order(2)
   public void testRuntimeErrorThrownIfFileDoesntExist(){
-    Configuration.setLocation("ANonExistentFile");
-    Assertions.assertThrows(RuntimeException.class, Configuration::getConfiguration);
+    ConfigurationManager.setLocation("ANonExistentFile");
+    Assertions.assertThrows(RuntimeException.class, ConfigurationManager::getConfiguration);
   }
   
   @Test
   @Order(3)
   public void testLocationsCanBeReturnedAsPaths() {
-    Configuration.setLocation(LOCATION_OF_TEST_CONFIG_FAKE_VALUES);
-    List<Path> allPathsReturned = Configuration.getConfiguration().getRootLocationsAsPaths();
+    ConfigurationManager.setLocation(LOCATION_OF_TEST_CONFIG_FAKE_VALUES);
+    List<Path> allPathsReturned = ConfigurationManager.getConfiguration().getRootLocationsAsPaths();
     
     List<String> allPathsExpected = Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash");
     for(Path pathReturned: allPathsReturned){

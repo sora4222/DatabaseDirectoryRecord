@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("WeakerAccess")
 public class DatabaseEntries {
-
+    // TODO: Check this
     /**
      * I want this to give me small batches of the files stored in the database.
      * Each batch will follow on from the last one.
@@ -37,7 +37,7 @@ class computerFileGenerator {
     private static final Queue<FileInformation> filesToOutput = new LinkedList<>();
 
     static {
-        hostname = ComputerProperties.getComputerName();
+        hostname = ComputerProperties.computerName.get();
     }
 
     static FileInformation getFiles() {

@@ -1,20 +1,18 @@
 package com.sora4222.database.connectors;
 
 import com.sora4222.database.configuration.Config;
-import com.sora4222.database.configuration.Configuration;
+import com.sora4222.database.configuration.ConfigurationManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 public class ConnectionStorage {
     private static Connection connect;
-    private static Config config = Configuration.getConfiguration();
+    private static Config config = ConfigurationManager.getConfiguration();
     private static Logger logger = LogManager.getLogger();
 
     static {
@@ -34,14 +32,14 @@ public class ConnectionStorage {
     private static void initialize () throws SQLException {
         connect = DriverManager
             .getConnection(
-                config.getJdbcConnectionUrl() + "?serverTimezone=Australia/Melbourne",
+                config.getJdbcConnectionUrl() + "?serverTimezone=Australia/Melbourne&allowMultiQueries=true",
                 config.getDatabaseUsername(),
                 config.getDatabasePassword());
     }
 
     private static void checkAndHandleDeadConnection() {
         try {
-            if (!connect.isValid(35)) {
+            if (connect.isClosed() || !connect.isValid(35)) {
                 initialize();
             }
         } catch (SQLException e) {
@@ -49,8 +47,16 @@ public class ConnectionStorage {
             throw new RuntimeException(e);
         }
     }
+    
+    public static void close() {
+        try{
+            connect.close();
+        } catch (SQLException e) {
+            logger.error("During connection close there was an error: ", e);
+        }
+    }
 
-    protected static Connection getConnection () {
+    static Connection getConnection () {
         checkAndHandleDeadConnection();
         return connect;
     }

@@ -19,8 +19,8 @@ class DatabaseChangeSenderTest {
   DatabaseWrapper database;
   DatabaseChangeSender changeSender;
   LinkedList<FileCommand> fileCommands;
-  FileInformation testInfo1 = new FileInformation("aFile.txt", "/location/aFile.txt", "Hostname", "A412B43F");
-  FileInformation testInfo2 = new FileInformation("aFile2.txt", "/location/aFile2.txt", "Hostname", "A412B43N");
+  FileInformation testInfo1 = new FileInformation("/location/aFile.txt", "Hostname", "A412B43F");
+  FileInformation testInfo2 = new FileInformation( "/location/aFile2.txt", "Hostname", "A412B43N");
   
   @BeforeEach
   void setupDatabase() {

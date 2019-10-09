@@ -31,7 +31,7 @@ public class SystemTest {
         System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
 
         DirectoryRecorder.setupScanning();
-        DirectoryRecorder.scan();
+        DirectoryRecorder.startScanning();
 
         ResultSet files = connection.prepareStatement("SELECT * FROM " + dataTable).executeQuery();
         int count = 0;

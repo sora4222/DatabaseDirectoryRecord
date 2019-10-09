@@ -27,7 +27,6 @@ public class FileHasher {
    * @param fileToHash The file that will be read and hashed.
    */
   public FileHasher(final File fileToHash) {
-    
     try {
       this.fileToHash = new RandomAccessFile(fileToHash, "r");
     } catch (FileNotFoundException e) {

@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 
-public class Configuration {
+public class ConfigurationManager {
     private static Config heldConfig;
     private static String location = System.getProperty("config");
     private static Logger logger = LogManager.getLogger();
@@ -56,7 +56,7 @@ public class Configuration {
 
     @SuppressWarnings("SameParameterValue")
     static void setLocation (final String location) {
-        Configuration.heldConfig = null;
-        Configuration.location = location;
+        ConfigurationManager.heldConfig = null;
+        ConfigurationManager.location = location;
     }
 }
