@@ -104,6 +104,26 @@ public class MySqlConnectorTest {
           DatabaseQuery
             .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
             .size());
+    
+        connector = ConnectionStorage.getConnection();
+        connector
+            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file2.txt', '123asdf')")
+            .execute();
+        
+        Assertions.assertEquals(1,
+            DatabaseQuery
+                .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+                .size());
+        
+        connector = ConnectionStorage.getConnection();
+        connector
+            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('moreFakeComputer', '/dir/file2.txt', '123asdf')")
+            .execute();
+    
+        Assertions.assertEquals(1,
+            DatabaseQuery
+                .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+                .size());
     }
 
 //    @Test

@@ -20,8 +20,8 @@ class FileCommandTest {
     FileCommand fileCommand1 = new FileCommand(info1, DatabaseCommand.Insert);
     FileCommand fileCommand2 = new FileCommand(info2, DatabaseCommand.Insert);
     Assertions.assertEquals(fileCommand1, fileCommand2);
-    
-    fileCommand2.setCommand(DatabaseCommand.Update);
+
+    fileCommand2.command = DatabaseCommand.Update;
     Assertions.assertNotEquals(fileCommand1, fileCommand2);
     FileInformation info3 = new FileInformation("/a/name.txt", "host", "bc19e");
     FileCommand fileCommand3 = new FileCommand(info3, DatabaseCommand.Update);

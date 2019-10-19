@@ -38,7 +38,7 @@ public class Deleter {
     } catch (SQLException e) {
       logger.error("There has been an error trying to delete a group of rows.", e);
     } finally {
-//      ConnectionStorage.close();
+      ConnectionStorage.close();
     }
   }
 }
