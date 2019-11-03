@@ -42,22 +42,25 @@ public class DatabaseQuery {
     return false;
   }
   
-  public static Collection<FileInformation> allFilesInBothComputerAndDatabase (List<FileInformation> filesInHardDrive) {
+  public static Collection<FileInformation> allFilesAlreadyInBothComputerAndDatabase(List<FileInformation> filesInHardDrive) {
     Connection connection = ConnectionStorage.getConnection();
     try {
       PreparedStatement checkEachFileIsThere = connection.prepareStatement(allComputerFileCheck);
       checkEachFileIsThere.setString(1, ComputerProperties.computerName.get());
+  
       logger.info("Select statement: " + checkEachFileIsThere.toString());
       ResultSet resultSet = checkEachFileIsThere.executeQuery();
       
       final HashSet<FileInformation> hardDriveFiles = new HashSet<>(filesInHardDrive);
       while (resultSet.next()) {
+        logger.debug("Next iteration for ");
         hardDriveFiles.remove(
           new FileInformation(
             resultSet.getString("FilePath"),
             ComputerProperties.computerName.get(),
             resultSet.getString("FileHash")));
       }
+      logger.debug("Returning: " + hardDriveFiles.toString());
       return new LinkedList<>(hardDriveFiles);
     } catch (SQLException e) {
       logger.error("Checking for a batch of files in the database, query template: " + allComputerFileCheck, e);

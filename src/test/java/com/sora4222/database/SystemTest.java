@@ -1,17 +1,21 @@
 package com.sora4222.database;
 
+import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.configuration.UtilityForConfig;
-import com.sora4222.database.connectors.ConnectionStorage;
 import com.sora4222.database.connectors.UtilityForConnector;
 import org.junit.jupiter.api.*;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Arrays;
 
 public class SystemTest {
   private static final String LOCATION_OF_ROOT_ONE_ROOT_TWO = "src/test/resources/root1AndRoot2.json";
+  private static String dataTable = ConfigurationManager.getConfiguration().getDataTable();
   
   Connection connection;
-  private static String dataTable = System.getProperty("dataTable");
   
   @BeforeAll
   public static void resetConfig() {
@@ -20,7 +24,7 @@ public class SystemTest {
   
   @BeforeEach
   public void setupDatabase() throws SQLException {
-    connection = UtilityForConnector.getConnection();
+    connection = UtilityForConnector.getOrInitializeConnection();
     
     connection.prepareStatement("DELETE FROM " + dataTable).executeUpdate();
   }
@@ -31,17 +35,23 @@ public class SystemTest {
   }
   
   @Test
-  public void RunScannerOnceOnRootOneAndTwoJson() throws SQLException {
-    System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
+  public void RunScannerSetupRootOneAndTwo() throws SQLException {
+    ConfigurationManager
+        .getConfiguration()
+        .setRootLocations(Arrays.asList("src/test/resources/root1", "src/test/resources/root2/"));
     
     DirectoryRecorder.setupScanning();
-    DirectoryRecorder.startScanning();
+//    DirectoryRecorder.startScanning();
+  
+    connection = UtilityForConnector.getOrInitializeConnection();
+    Statement stmt = connection.createStatement();
+    ResultSet files = stmt.executeQuery("SELECT * FROM " + dataTable);
     
-    ResultSet files = connection.prepareStatement("SELECT * FROM " + dataTable).executeQuery();
     int count = 0;
     while (files.next()) {
       count++;
     }
     Assertions.assertEquals(6, count);
   }
+  
 }

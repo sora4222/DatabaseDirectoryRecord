@@ -1,14 +1,16 @@
 package com.sora4222.file;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-
-import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 
 public class FileHasher {
@@ -89,8 +91,8 @@ public class FileHasher {
     long i = 0L;
     try {
       while (i * multiplier < fileToHash.length()) {
-        logger.debug(String.format("Location: %d, expected next location %d",
-            fileToHash.getFilePointer(), (i + 1) * multiplier));
+//        logger.debug(String.format("Location: %d, expected next location %d",
+//            fileToHash.getFilePointer(), (i + 1) * multiplier));
         
         fileToHash.seek(i++ * multiplier);
         digester.update(fileToHash.readByte());

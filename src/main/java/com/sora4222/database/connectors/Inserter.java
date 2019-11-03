@@ -31,6 +31,8 @@ public class Inserter {
       databaseConnection.setAutoCommit(false);
       PreparedStatement insertionSql = databaseConnection
         .prepareStatement(insertionString);
+  
+      logger.debug("Files to insert in database count: " + filesToInsert.size());
       
       for (FileInformation file : filesToInsert) {
         insertionSql.setString(1, ComputerProperties.computerName.get());

@@ -3,10 +3,7 @@ package com.sora4222.database;
 import com.sora4222.database.configuration.ComputerProperties;
 import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.ConfigurationManager;
-import com.sora4222.database.connectors.DatabaseQuery;
-import com.sora4222.database.connectors.Deleter;
-import com.sora4222.database.connectors.Inserter;
-import com.sora4222.database.connectors.Updater;
+import com.sora4222.database.connectors.*;
 import com.sora4222.file.FileHasher;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
@@ -90,26 +87,33 @@ public class DirectoryRecorder {
   static void setupScanning() {
     logger.trace("setupScanning");
   
-    //Subscribe to directories for the first time
+    //Subscribe to directories for the first time and seed
     for (Path confDirPath : config.getRootLocationsAsPaths()) {
       subscribeToChangesFromAllDirectories(confDirPath);
       
       logger.trace("Seeding all directories");
       //Seed all directories
-      List<FileInformation> allFiles = gatherAllFilesUnderRootPath(confDirPath);
+      List<FileInformation> allFilesInThisRoot = gatherAllFilesUnderRootPath(confDirPath);
+      List<FileInformation> allFilesInDatabaseForThisComputer = DatabaseEntries
+          .getComputersFilesFromDatabase(confDirPath)
+          .limit(DatabaseEntries.databaseRecordCount())
+          .collect(Collectors.toList());
+      
       List<FileInformation> filesNotInTheDatabase =
-          DatabaseEntries
-              .getComputersFilesFromDatabase()
-              .limit(DatabaseEntries.databaseRecordCount())
+          allFilesInThisRoot
+              .stream()
               .parallel()
-              .filter(fileInformation -> !allFiles.contains(fileInformation))
+              .peek((fileInformation -> logger.debug("FilterIn: " + fileInformation.getFullLocation())))
+              .filter(fileInformation -> !allFilesInDatabaseForThisComputer.contains(fileInformation))
+              .peek(fileInformation -> logger.debug("FilterOut: " + fileInformation.getFullLocation()))
               .collect(Collectors.toList());
+  
       logger.info(String.format("During seeding %d files were not in the database.", filesNotInTheDatabase.size()));
       
       // Upload those files.
       Inserter.insertFilesIntoDatabase(filesNotInTheDatabase);
-      
-      if (!Boolean.getBoolean(System.getProperty("skipUpdateAndDelete", "False"))) {
+  
+      if (!Boolean.getBoolean("skipUpdateAndDelete")) {
         logger.info("Initial update and delete processing");
         List<FileCommand> updates = findUpdatesToDatabase(confDirPath);
         Updater.sendUpdatesToDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Update)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
@@ -130,7 +134,7 @@ public class DirectoryRecorder {
           .collect(Collectors.toList());
   
       return DatabaseQuery
-          .allFilesInBothComputerAndDatabase(existingFiles)
+          .allFilesAlreadyInBothComputerAndDatabase(existingFiles)
           .parallelStream()
           .filter(fileInformation -> !existingFiles.contains(fileInformation))
           .map(path -> getUpdateType(existingFiles, path))

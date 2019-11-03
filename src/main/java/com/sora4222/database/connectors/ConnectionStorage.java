@@ -1,6 +1,5 @@
 package com.sora4222.database.connectors;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.ConfigurationManager;
 import org.apache.logging.log4j.LogManager;
@@ -75,11 +74,10 @@ public class ConnectionStorage {
     }
     
     /**
-     * Intended for testing purposes only, it will return a connection to the database
-     * in the same way that the main program does it.
+     * Obtains a connection to a database, also checking whether the connection is
+     * dead or closed and reconnecting if it is.
      * @return A connection to the database without any wrapper.
      */
-    @VisibleForTesting
     static Connection getConnection () {
         checkAndHandleDeadConnection();
         return connect;

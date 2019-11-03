@@ -33,8 +33,8 @@ public class MySqlConnectorTest {
     public void setup () throws SQLException {
         ConfigurationManager.getConfiguration().setRootLocations(
             Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash/"));
-        
-        connector = UtilityForConnector.getConnection();
+    
+        connector = UtilityForConnector.getOrInitializeConnection();
         connector.prepareStatement("DELETE FROM directory_records_test").executeUpdate();
         
         testFiles = new LinkedList<>();
@@ -102,7 +102,7 @@ public class MySqlConnectorTest {
           .execute();
         Assertions.assertEquals(1,
           DatabaseQuery
-            .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+              .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
             .size());
     
         connector = ConnectionStorage.getConnection();
@@ -112,7 +112,7 @@ public class MySqlConnectorTest {
         
         Assertions.assertEquals(1,
             DatabaseQuery
-                .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
                 .size());
         
         connector = ConnectionStorage.getConnection();
@@ -122,13 +122,13 @@ public class MySqlConnectorTest {
     
         Assertions.assertEquals(1,
             DatabaseQuery
-                .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
                 .size());
     }
     
     @Test
     void allQueriesAcceptEmptyList() {
-        Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesInBothComputerAndDatabase(Collections.emptyList()));
+        Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesAlreadyInBothComputerAndDatabase(Collections.emptyList()));
         Inserter.insertFilesIntoDatabase(Collections.emptyList());
         Updater.sendUpdatesToDatabase(Collections.emptyList());
         Deleter.sendDeletesToDatabase(Collections.emptyList());
