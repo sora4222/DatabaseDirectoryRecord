@@ -16,8 +16,6 @@ import java.util.*;
 public class MySqlConnectorTest {
 
     Connection connector;
-    private static String LOCATION_OF_TEST_CONFIG_FAKE_VALUES = "src/test/resources/filledConfigFile.json";
-    
     String name;
     Path location;
     String fileHash;

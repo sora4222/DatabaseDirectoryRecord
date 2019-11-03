@@ -22,6 +22,9 @@ public class Deleter {
   
   @SuppressWarnings("SqlResolve")
   public static void sendDeletesToDatabase (final List<FileInformation> filesInDBToDelete) {
+    if(filesInDBToDelete.size() == 0)
+      return;
+    
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
       PreparedStatement deleteStatement = databaseConnection.prepareCall(deleteCommand);

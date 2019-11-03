@@ -23,12 +23,15 @@ public class Inserter {
    * Inserts a list of files into the directory database.
    */
   public static void insertFilesIntoDatabase (List<FileInformation> filesToInsert) {
+    if(filesToInsert.size() == 0)
+      return;
+    
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
       databaseConnection.setAutoCommit(false);
       PreparedStatement insertionSql = databaseConnection
         .prepareStatement(insertionString);
-  
+      
       for (FileInformation file : filesToInsert) {
         insertionSql.setString(1, ComputerProperties.computerName.get());
         insertionSql.setString(2, file.getFullLocationAsLinuxBasedString());
@@ -38,13 +41,13 @@ public class Inserter {
       }
       
       logger.info("SQL statement for insertion: " + insertionSql.toString());
-      System.out.println(insertionSql.toString());
       insertionSql.executeBatch();
       databaseConnection.commit();
       databaseConnection.setAutoCommit(true);
     } catch (SQLException e) {
       rollbackDatabase(databaseConnection);
       logger.error("During an insertion statement there has been an SQL exception: ", e);
+      throw new RuntimeException(e);
     } finally {
       ConnectionStorage.close();
     }

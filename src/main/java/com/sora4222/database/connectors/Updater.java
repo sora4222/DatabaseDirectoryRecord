@@ -23,6 +23,9 @@ public class Updater {
       "WHERE FilePath=? AND ComputerName=?";
   
   public static void sendUpdatesToDatabase (final List<FileInformation> filesInDBToUpdate) {
+    if(filesInDBToUpdate.size() == 0)
+      return;
+    
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
       PreparedStatement deleteStatement = databaseConnection.prepareCall(updateCommand);
