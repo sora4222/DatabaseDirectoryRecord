@@ -25,13 +25,14 @@ public class Config {
   @Setter
   @Getter
   String databasePassword = "";
-
+  
   @Getter
   @Setter
   String dataTable = "";
-
+  
   /**
    * Gets the root locations as paths.
+   *
    * @return root locations as paths.
    */
   public List<Path> getRootLocationsAsPaths() {
@@ -42,5 +43,9 @@ public class Config {
     }
     
     return rootLocationsAsPaths;
+  }
+  
+  public boolean isJdbcConnectionUrlNotSet() {
+    return jdbcConnectionUrl.isEmpty();
   }
 }

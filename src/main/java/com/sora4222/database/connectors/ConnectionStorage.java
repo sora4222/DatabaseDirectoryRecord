@@ -18,18 +18,32 @@ public class ConnectionStorage {
     static {
         logger.info("Establishing connection to MySQL database.");
         while (true) {
+            int i = 0;
             try {
+                if(i++ != 0)
+                    Thread.sleep(1000 * i);
                 initialize();
                 break;
             } catch (SQLException e) {
                 logger.error(String.format("The MySQL database cannot be connected to URI: %s\nError: %s",
                     config.getJdbcConnectionUrl(), e.getMessage()));
+                
+            } catch (NoSuchFieldException e) {
+                logger.error(
+                    String.format("A required field is missing for this application to start %s", e.getMessage()),
+                    e);
                 throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                logger.error(e);
             }
         }
     }
 
-    private static void initialize () throws SQLException {
+    private static void initialize () throws SQLException, NoSuchFieldException {
+        logger.trace("Initializing database connection.");
+        logger.debug("config jdbcConnectionUrl: " + config.getJdbcConnectionUrl());
+        if(config.isJdbcConnectionUrlNotSet())
+            throw new NoSuchFieldException("The jdbcConnectionUrl is not set in the configuration settings.");
         connect = DriverManager
             .getConnection(
                 config.getJdbcConnectionUrl() + "?serverTimezone=Australia/Melbourne&allowMultiQueries=true",
@@ -44,6 +58,10 @@ public class ConnectionStorage {
             }
         } catch (SQLException e) {
             logger.error("The database whilst attempting to reconnect has failed.");
+            throw new RuntimeException(e);
+        } catch (NoSuchFieldException e) {
+            // Shouldn't ever happen as initialization should catch this.
+            logger.error(e);
             throw new RuntimeException(e);
         }
     }

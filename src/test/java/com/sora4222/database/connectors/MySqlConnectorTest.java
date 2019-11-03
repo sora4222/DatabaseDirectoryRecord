@@ -1,39 +1,40 @@
 package com.sora4222.database.connectors;
 
 import com.sora4222.database.configuration.ComputerProperties;
+import com.sora4222.database.configuration.ConfigurationManager;
+import com.sora4222.database.configuration.UtilityForConfig;
 import com.sora4222.file.FileInformation;
 import org.junit.jupiter.api.*;
 
-import javax.xml.crypto.Data;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class MySqlConnectorTest {
 
     Connection connector;
     private static String LOCATION_OF_TEST_CONFIG_FAKE_VALUES = "src/test/resources/filledConfigFile.json";
-
+    
     String name;
     Path location;
-    String filehash;
+    String fileHash;
     String computerName;
 
-    @BeforeAll
-    public static void systemProperties () {
-        System.setProperty("config", LOCATION_OF_TEST_CONFIG_FAKE_VALUES);
-    }
     List<FileInformation> testFiles = new LinkedList<>();
-
+    
+    @BeforeAll
+    public static void clearConfiguration() {
+        UtilityForConfig.clearConfig();
+    }
+    
     @BeforeEach
     public void setup () throws SQLException {
+        ConfigurationManager.getConfiguration().setRootLocations(
+            Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash/"));
+        
         connector = ConnectionStorage.getConnection();
         connector.prepareStatement("DELETE FROM directory_records_test").executeUpdate();
         
@@ -45,7 +46,7 @@ public class MySqlConnectorTest {
     public void createNewFakeFile () {
         name = UUID.randomUUID().toString() + ".txt";
         location = Paths.get(name);
-        filehash = UUID.randomUUID().toString();
+        fileHash = UUID.randomUUID().toString();
         computerName = UUID.randomUUID().toString();
     }
 
@@ -56,7 +57,7 @@ public class MySqlConnectorTest {
 
     @Test
     public void InsertInformation () throws SQLException {
-        testFiles.add(new FileInformation(location, filehash));
+        testFiles.add(new FileInformation(location, fileHash));
         Inserter.insertFilesIntoDatabase(testFiles);
         
         Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
@@ -64,7 +65,7 @@ public class MySqlConnectorTest {
 
     @Test
     public void InsertAndSelect () throws SQLException {
-        FileInformation file = new FileInformation(location, filehash);
+        FileInformation file = new FileInformation(location, fileHash);
         testFiles.add(file);
         Inserter.insertFilesIntoDatabase(testFiles);
         
@@ -73,7 +74,7 @@ public class MySqlConnectorTest {
 
     @Test
     public void InsertThenDelete () throws SQLException {
-        FileInformation fileToInsertAndDelete = new FileInformation(location, filehash);
+        FileInformation fileToInsertAndDelete = new FileInformation(location, fileHash);
         testFiles.add(fileToInsertAndDelete);
         Inserter.insertFilesIntoDatabase(testFiles);
         
@@ -125,27 +126,13 @@ public class MySqlConnectorTest {
                 .allFilesInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
                 .size());
     }
-
-//    @Test
-//    public void UpdateFileHash () {
-//        FileInformation fileToInsertThenUpdate = new FileInformation(location, filehash);
-//        connector.insertFile(fileToInsertThenUpdate);
-//
-//        FileInformation updatedFile = new FileInformation(location, UUID.randomUUID().toString());
-//        Assertions.assertTrue(connector.updateFileRow(updatedFile));
-//        List<FileInformation> retrievedFiles = connector.checkForFile(updatedFile);
-//        Assertions.assertTrue(retrievedFiles.contains(updatedFile), retrievedFiles.toString());
-//    }
-//
-//    @Test
-//    public void InsertTwoFilesDifferentHashSameName () {
-//        FileInformation fileToInsertThenUpdate = new FileInformation(location, filehash);
-//        connector.insertFile(fileToInsertThenUpdate);
-//
-//        FileInformation updatedFile = new FileInformation(location, UUID.randomUUID().toString());
-//        Assertions.assertTrue(connector.updateFileRow(updatedFile));
-//
-//        List<FileInformation> retrievedFiles = connector.checkForFile(fileToInsertThenUpdate);
-//        Assertions.assertTrue(retrievedFiles.contains(updatedFile), retrievedFiles.toString());
-//    }
+    
+    @Test
+    void allQueriesAcceptEmptyList() {
+        Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesInBothComputerAndDatabase(Collections.emptyList()));
+        Inserter.insertFilesIntoDatabase(Collections.emptyList());
+        Updater.sendUpdatesToDatabase(Collections.emptyList());
+        Deleter.sendDeletesToDatabase(Collections.emptyList());
+    
+    }
 }

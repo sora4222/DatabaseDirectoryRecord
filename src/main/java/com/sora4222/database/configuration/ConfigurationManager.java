@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class ConfigurationManager {
     private static Config heldConfig;
-    private static String location = System.getProperty("config");
+    private static String location = System.getProperty("config", "");
     private static Logger logger = LogManager.getLogger();
     @SuppressWarnings("ReturnPrivateMutableField")
     public static Config getConfiguration() {
@@ -20,34 +20,45 @@ public class ConfigurationManager {
     }
 
     private static void instantiateConfig() {
+        logger.debug("Location of config: " + location);
+        
         ObjectMapper jsonToObject = new ObjectMapper();
+        File homeFileLocation = new File(String.format("%s%s.directoryRecorder%sConfig.json", System.getProperty("user.home"), File.separator, File.separator));
         try {
-            heldConfig = jsonToObject.readValue(new File(location), Config.class);
-            heldConfig = testDatabaseDetailsAreSetOtherwiseSetThem(heldConfig);
+            if(!location.isEmpty()) {
+                logger.debug("Reading from set location file.");
+                heldConfig = jsonToObject.readValue(new File(location), Config.class);
+            }
+            else if(homeFileLocation.exists()) {
+                logger.debug("Reading config from home directory location");
+                heldConfig = jsonToObject.readValue(homeFileLocation, Config.class);
+            }
+            
+            heldConfig = testDatabaseDetailsAreSetOtherwiseSetThemWithParameters(heldConfig);
         } catch (IOException e) {
             logger.error("An IO exception has occurred instantiating the config.", e);
             throw new RuntimeException(e);
         }
     }
 
-    private static Config testDatabaseDetailsAreSetOtherwiseSetThem(Config heldConfig) {
+    private static Config testDatabaseDetailsAreSetOtherwiseSetThemWithParameters(Config heldConfig) {
         if (heldConfig.getDatabasePassword().isEmpty()) {
-            logger.info("Database password is being set to: " + System.getProperty("databasePassword"));
+            logger.debug("Database password is being set to: " + System.getProperty("databasePassword"));
            heldConfig.setDatabasePassword(System.getProperty("databasePassword"));
         }
 
         if (heldConfig.getDatabaseUsername().isEmpty()) {
-            logger.info("Database username is being set to  " + System.getProperty("databaseUsername"));
+            logger.debug("Database username is being set to  " + System.getProperty("databaseUsername"));
             heldConfig.setDatabaseUsername(System.getProperty("databaseUsername"));
         }
 
         if (heldConfig.getJdbcConnectionUrl().isEmpty()) {
-            logger.info("Database JDBC connection url is being set to  " + System.getProperty("jdbcConnectionUrl"));
+            logger.debug("Database JDBC connection url is being set to  " + System.getProperty("jdbcConnectionUrl"));
             heldConfig.setJdbcConnectionUrl(System.getProperty("jdbcConnectionUrl"));
         }
 
         if (heldConfig.getDataTable().isEmpty()) {
-            logger.info("Database table is being set to  " + System.getProperty("dataTable"));
+            logger.debug("Database table is being set to  " + System.getProperty("dataTable"));
             heldConfig.setDataTable(System.getProperty("dataTable"));
         }
 
@@ -58,5 +69,13 @@ public class ConfigurationManager {
     static void setLocation (final String location) {
         ConfigurationManager.heldConfig = null;
         ConfigurationManager.location = location;
+    }
+    
+    /**
+     * For testing only.
+     * Removes the configuration
+     */
+    static void clearConfig() {
+        heldConfig = null;
     }
 }

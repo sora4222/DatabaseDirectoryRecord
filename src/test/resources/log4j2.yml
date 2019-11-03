@@ -1,5 +1,5 @@
 Configuration:
-  status: warn
+  status: debug
   name: testConfiguration
   properties:
     property:
@@ -25,7 +25,7 @@ Configuration:
         stackTraceEnabled: true
       Filters:
         ThresholdFilter:
-          level: info
+          level: debug
       Policies:
         TimeBasedTriggeringPolicy:
           interval: 1
@@ -38,6 +38,6 @@ Configuration:
 
   Loggers:
     Root:
-      level: info
+      level: debug
       AppenderRef:
         ref: STDOUT
