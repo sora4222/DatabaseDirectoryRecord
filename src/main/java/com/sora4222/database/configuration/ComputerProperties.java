@@ -1,7 +1,6 @@
 package com.sora4222.database.configuration;
 
 import com.google.common.base.Suppliers;
-import com.google.common.cache.CacheLoader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

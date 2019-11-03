@@ -20,7 +20,6 @@ public class Deleter {
     config.getDataTable() +
     "` WHERE FilePath=? AND ComputerName=?";
   
-  @SuppressWarnings("SqlResolve")
   public static void sendDeletesToDatabase (final List<FileInformation> filesInDBToDelete) {
     if(filesInDBToDelete.size() == 0)
       return;

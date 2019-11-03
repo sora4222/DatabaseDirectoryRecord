@@ -34,15 +34,15 @@ public class ConfigurationManager {
         logger.debug("Reading config from home directory location");
         heldConfig = jsonToObject.readValue(homeFileLocation, Config.class);
       }
-      
-      heldConfig = testDatabaseDetailsAreSetOtherwiseSetThemWithParameters(heldConfig);
+      checkDatabaseDetailsAreSetSetEmptyWithParameters();
+  
     } catch (IOException e) {
       logger.error("An IO exception has occurred instantiating the config.", e);
       throw new RuntimeException(e);
     }
   }
   
-  private static Config testDatabaseDetailsAreSetOtherwiseSetThemWithParameters(Config heldConfig) {
+  private static Config checkDatabaseDetailsAreSetSetEmptyWithParameters() {
     if (heldConfig.getDatabasePassword().isEmpty()) {
       logger.debug("Database password is being set to: " + System.getProperty("databasePassword"));
       heldConfig.setDatabasePassword(System.getProperty("databasePassword"));

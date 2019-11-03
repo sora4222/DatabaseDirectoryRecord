@@ -77,7 +77,7 @@ public class ConnectionStorage {
     /**
      * Intended for testing purposes only, it will return a connection to the database
      * in the same way that the main program does it.
-     * @return
+     * @return A connection to the database without any wrapper.
      */
     @VisibleForTesting
     static Connection getConnection () {

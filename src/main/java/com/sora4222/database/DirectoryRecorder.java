@@ -3,23 +3,17 @@ package com.sora4222.database;
 import com.sora4222.database.configuration.ComputerProperties;
 import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.ConfigurationManager;
+import com.sora4222.database.connectors.DatabaseQuery;
 import com.sora4222.database.connectors.Deleter;
 import com.sora4222.database.connectors.Inserter;
 import com.sora4222.database.connectors.Updater;
-import com.sora4222.database.connectors.DatabaseQuery;
 import com.sora4222.file.FileHasher;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -93,7 +87,6 @@ public class DirectoryRecorder {
     return new FileCommand(file, commandForChange);
   }
   
-  @SuppressWarnings("InfiniteLoopStatement")
   static void setupScanning() {
     logger.trace("setupScanning");
   
@@ -135,15 +128,13 @@ public class DirectoryRecorder {
           .filter(path -> path.toFile().isFile())
           .map(path -> convertPathToFileInformation(path))
           .collect(Collectors.toList());
-      
-      final List<FileCommand> updates = DatabaseQuery
+  
+      return DatabaseQuery
           .allFilesInBothComputerAndDatabase(existingFiles)
           .parallelStream()
           .filter(fileInformation -> !existingFiles.contains(fileInformation))
           .map(path -> getUpdateType(existingFiles, path))
           .collect(Collectors.toList());
-      
-      return updates;
     } catch (IOException e) {
       logger.error("Potentially a file walking error: ", e);
     }
