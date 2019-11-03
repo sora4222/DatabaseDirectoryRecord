@@ -13,6 +13,7 @@ import java.util.LinkedList;
 @SuppressWarnings("WeakerAccess")
 public class FileHasherSimplePerformanceTests {
   private static Logger logger = LogManager.getLogger();
+  private static int NUMBER_OF_TIMES_TO_REPEAT = 3;
   
   static File verySmallFile = new File("");
   static File smallFile = new File("");
@@ -45,7 +46,7 @@ public class FileHasherSimplePerformanceTests {
   @Test
   public void verySmallFilesReadWithinFiveSeconds() {
     LinkedList<Double> times = new LinkedList<>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < NUMBER_OF_TIMES_TO_REPEAT; i++) {
       long timeTaken = callWithFile(verySmallFile);
       logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
@@ -58,7 +59,7 @@ public class FileHasherSimplePerformanceTests {
   @Test
   public void smallFilesReadWithinFiveSeconds() {
     LinkedList<Double> times = new LinkedList<>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < NUMBER_OF_TIMES_TO_REPEAT; i++) {
       long timeTaken = callWithFile(smallFile);
       logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
@@ -71,7 +72,7 @@ public class FileHasherSimplePerformanceTests {
   @Test
   public void megabyteFilesReadWithinFiveSeconds() {
     LinkedList<Double> times = new LinkedList<>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < NUMBER_OF_TIMES_TO_REPEAT; i++) {
       long timeTaken = callWithFile(megabyteFile);
       logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);
@@ -84,7 +85,7 @@ public class FileHasherSimplePerformanceTests {
   @Test
   public void gigabyteFilesReadWithinFiveSeconds() {
     LinkedList<Double> times = new LinkedList<>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < NUMBER_OF_TIMES_TO_REPEAT; i++) {
       long timeTaken = callWithFile(gigabyteFile);
       logger.info(String.format("Time taken: '%d'ms", timeTaken));
       times.add(timeTaken / 1000.0);

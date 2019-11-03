@@ -26,6 +26,7 @@ public class MySqlConnectorTest {
     @BeforeAll
     public static void clearConfiguration() {
         UtilityForConfig.clearConfig();
+        System.clearProperty("config");
     }
     
     @BeforeEach
@@ -33,7 +34,7 @@ public class MySqlConnectorTest {
         ConfigurationManager.getConfiguration().setRootLocations(
             Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash/"));
         
-        connector = ConnectionStorage.getConnection();
+        connector = UtilityForConnector.getConnection();
         connector.prepareStatement("DELETE FROM directory_records_test").executeUpdate();
         
         testFiles = new LinkedList<>();

@@ -1,5 +1,6 @@
 package com.sora4222.database.connectors;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.ConfigurationManager;
 import org.apache.logging.log4j.LogManager;
@@ -21,13 +22,12 @@ public class ConnectionStorage {
             int i = 0;
             try {
                 if(i++ != 0)
-                    Thread.sleep(1000 * i);
+                    Thread.sleep((int) (100 * Math.exp(Math.min(i, 10))));
                 initialize();
                 break;
             } catch (SQLException e) {
                 logger.error(String.format("The MySQL database cannot be connected to URI: %s\nError: %s",
                     config.getJdbcConnectionUrl(), e.getMessage()));
-                
             } catch (NoSuchFieldException e) {
                 logger.error(
                     String.format("A required field is missing for this application to start %s", e.getMessage()),
@@ -73,7 +73,13 @@ public class ConnectionStorage {
             logger.error("During connection close there was an error: ", e);
         }
     }
-
+    
+    /**
+     * Intended for testing purposes only, it will return a connection to the database
+     * in the same way that the main program does it.
+     * @return
+     */
+    @VisibleForTesting
     static Connection getConnection () {
         checkAndHandleDeadConnection();
         return connect;
