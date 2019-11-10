@@ -9,9 +9,11 @@ import org.junit.jupiter.api.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MySqlConnectorTest {
 
@@ -99,7 +101,7 @@ public class MySqlConnectorTest {
     public void TestSelectAllFilesQuery() throws SQLException {
         connector
           .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file.txt', '1234asdf')")
-          .execute();
+            .executeUpdate();
         Assertions.assertEquals(1,
           DatabaseQuery
               .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
@@ -108,7 +110,7 @@ public class MySqlConnectorTest {
         connector = ConnectionStorage.getConnection();
         connector
             .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file2.txt', '123asdf')")
-            .execute();
+            .executeUpdate();
         
         Assertions.assertEquals(1,
             DatabaseQuery
@@ -118,7 +120,7 @@ public class MySqlConnectorTest {
         connector = ConnectionStorage.getConnection();
         connector
             .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('moreFakeComputer', '/dir/file2.txt', '123asdf')")
-            .execute();
+            .executeUpdate();
     
         Assertions.assertEquals(1,
             DatabaseQuery
@@ -132,6 +134,43 @@ public class MySqlConnectorTest {
         Inserter.insertFilesIntoDatabase(Collections.emptyList());
         Updater.sendUpdatesToDatabase(Collections.emptyList());
         Deleter.sendDeletesToDatabase(Collections.emptyList());
+    }
     
+    @Test
+    void testDatabaseEntriesReturnsNothingWhenTheFilesAreNotInDatabase() {
+        Path rootOneDirectory = Paths.get("src/test/resources/root1/");
+        DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
+        Assertions.assertEquals(0, entries.databaseRecordCount());
+        
+        List<FileInformation> stream = entries.getComputersFilesFromDatabase()
+            .limit(entries.databaseRecordCount()).collect(Collectors.toList());
+        Assertions.assertTrue(stream.isEmpty());
+    }
+    
+    @Test
+    void testDataBaseEntriesWillReturnARowWithTheSrcRootInItButNoOtherRow() throws SQLException {
+        Path rootOneDirectory = Paths.get("src/test/resources/root1/");
+        
+        // Insert something that exists
+        PreparedStatement statement = connector
+            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES (?, ?, '123asdf')");
+        statement.setString(1, ComputerProperties.computerName.get());
+        statement.setString(2, rootOneDirectory.resolve("sharedFile1.txt").toAbsolutePath().toString().replace("\\", "/"));
+        statement.executeUpdate();
+        
+        Path rootTwoDirectory = Paths.get("src/test/resources/root2/");
+        // Insert something that is in a different directory
+        statement = connector
+            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES (?, ?, '125asdf')");
+        statement.setString(1, ComputerProperties.computerName.get());
+        statement.setString(2, rootTwoDirectory.resolve("sharedFile2.txt").toAbsolutePath().toString().replace("\\", "/"));
+        statement.executeUpdate();
+        
+        DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
+        Assertions.assertEquals(1, entries.databaseRecordCount());
+        
+        List<FileInformation> stream = entries.getComputersFilesFromDatabase()
+            .limit(entries.databaseRecordCount()).collect(Collectors.toList());
+        Assertions.assertEquals(1, stream.size());
     }
 }

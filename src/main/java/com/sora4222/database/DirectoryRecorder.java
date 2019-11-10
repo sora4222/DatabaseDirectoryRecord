@@ -94,9 +94,10 @@ public class DirectoryRecorder {
       logger.trace("Seeding all directories");
       //Seed all directories
       List<FileInformation> allFilesInThisRoot = gatherAllFilesUnderRootPath(confDirPath);
-      List<FileInformation> allFilesInDatabaseForThisComputer = DatabaseEntries
-          .getComputersFilesFromDatabase(confDirPath)
-          .limit(DatabaseEntries.databaseRecordCount())
+      DatabaseEntries databaseEntries = new DatabaseEntries(confDirPath);
+      List<FileInformation> allFilesInDatabaseForThisComputer = databaseEntries
+          .getComputersFilesFromDatabase()
+          .limit(databaseEntries.databaseRecordCount())
           .collect(Collectors.toList());
       
       List<FileInformation> filesNotInTheDatabase =
