@@ -1,7 +1,6 @@
 package com.sora4222.database;
 
 import com.sora4222.database.configuration.ComputerProperties;
-import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.connectors.*;
 import com.sora4222.file.FileHasher;
@@ -20,7 +19,6 @@ import java.util.stream.Stream;
 
 public class DirectoryRecorder {
   private static Logger logger = LogManager.getLogger();
-  private static Config config = ConfigurationManager.getConfiguration();
   private static final HashMap<Path, WatchKey> directoriesWatching = new HashMap<>();
   private static final WatchService subscribeService;
   private static final HashMap<WatchEvent.Kind<Path>, DatabaseCommand> eventToCommandMap = new HashMap<>();
@@ -95,7 +93,7 @@ public class DirectoryRecorder {
     logger.trace("setupScanning");
   
     //Subscribe to directories for the first time and seed
-    for (Path confDirPath : config.getRootLocationsAsPaths()) {
+    for (Path confDirPath : ConfigurationManager.getConfiguration().getRootLocationsAsPaths()) {
       subscribeToChangesFromAllDirectories(confDirPath);
       
       logger.trace("Seeding all directories");

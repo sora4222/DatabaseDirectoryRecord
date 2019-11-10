@@ -19,14 +19,19 @@ public class SystemTest {
   
   @BeforeAll
   public static void resetConfig() {
+    System.clearProperty("config");
+    System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
+    ConfigurationManager.getConfiguration();
     UtilityForConfig.clearConfig();
   }
   
   @SuppressWarnings("SqlWithoutWhere")
   @BeforeEach
   public void setupDatabase() throws SQLException {
-    connection = UtilityForConnector.getOrInitializeConnection();
+    System.clearProperty("config");
+    UtilityForConfig.clearConfig();
     
+    connection = UtilityForConnector.getOrInitializeConnection();
     connection.prepareStatement("DELETE FROM " + dataTable).executeUpdate();
   }
   
@@ -59,6 +64,9 @@ public class SystemTest {
   
   @Test
   public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() {
+    System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
+    UtilityForConfig.clearConfig();
+    
     DirectoryRecorder.setupScanning();
     DirectoryRecorder.scanOnce();
   }
