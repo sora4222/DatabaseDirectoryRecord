@@ -11,6 +11,8 @@ public class ConfigurationManager {
   private static Config heldConfig;
   private static String location;
   private static Logger logger = LogManager.getLogger();
+  private static File homeFileLocation = new File(String.format("%s%s.directoryRecorder%sConfig.json", System.getProperty("user.home"), File.separator, File.separator));
+  
   
   @SuppressWarnings("ReturnPrivateMutableField")
   public static Config getConfiguration() {
@@ -25,7 +27,6 @@ public class ConfigurationManager {
     logger.debug("Location of config: " + location);
     
     ObjectMapper jsonToObject = new ObjectMapper();
-    File homeFileLocation = new File(String.format("%s%s.directoryRecorder%sConfig.json", System.getProperty("user.home"), File.separator, File.separator));
     try {
       if (!location.isEmpty()) {
         logger.debug("Reading from set location file.");
@@ -34,7 +35,8 @@ public class ConfigurationManager {
         logger.debug("Reading config from home directory location");
         heldConfig = jsonToObject.readValue(homeFileLocation, Config.class);
       }
-      checkDatabaseDetailsAreSetSetEmptyWithParameters();
+      fillEmptyFieldsWithHomeFile();
+      checkDatabaseDetailsAreSet();
   
     } catch (IOException e) {
       logger.error("An IO exception has occurred instantiating the config.", e);
@@ -42,7 +44,8 @@ public class ConfigurationManager {
     }
   }
   
-  private static Config checkDatabaseDetailsAreSetSetEmptyWithParameters() {
+  private static void checkDatabaseDetailsAreSet() {
+  
     if (heldConfig.getDatabasePassword().isEmpty()) {
       logger.debug("Database password is being set to: " + System.getProperty("databasePassword"));
       heldConfig.setDatabasePassword(System.getProperty("databasePassword"));
@@ -63,7 +66,19 @@ public class ConfigurationManager {
       heldConfig.setDataTable(System.getProperty("dataTable"));
     }
     
-    return heldConfig;
+  }
+  
+  private static void fillEmptyFieldsWithHomeFile() throws IOException {
+    if (homeFileLocation.exists()) {
+      logger.debug("Reading config from home directory location");
+      ObjectMapper jsonToObject = new ObjectMapper();
+      Config tempConfig = jsonToObject.readValue(homeFileLocation, Config.class);
+      
+      if (heldConfig.getDataTable().isEmpty()) heldConfig.setDataTable(tempConfig.dataTable);
+      if (heldConfig.getDatabasePassword().isEmpty()) heldConfig.setDatabasePassword(tempConfig.databasePassword);
+      if (heldConfig.getDatabaseUsername().isEmpty()) heldConfig.setDatabaseUsername(tempConfig.databaseUsername);
+      if (heldConfig.getJdbcConnectionUrl().isEmpty()) heldConfig.setJdbcConnectionUrl(tempConfig.jdbcConnectionUrl);
+    }
   }
   
   /**

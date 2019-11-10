@@ -36,6 +36,9 @@ public class SystemTest {
   
   @Test
   public void RunScannerSetupRootOneAndTwo() throws SQLException {
+    System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
+    UtilityForConfig.clearConfig();
+    
     ConfigurationManager
         .getConfiguration()
         .setRootLocations(Arrays.asList("src/test/resources/root1", "src/test/resources/root2/"));

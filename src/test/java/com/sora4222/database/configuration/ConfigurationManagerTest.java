@@ -1,7 +1,6 @@
 package com.sora4222.database.configuration;
 
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.engine.script.ScriptAccessor;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -39,13 +38,6 @@ public class ConfigurationManagerTest {
   
   @Test
   @Order(2)
-  public void testRuntimeErrorThrownIfFileDoesntExist(){
-    System.setProperty("config", "ANonExistentFile");
-    Assertions.assertThrows(RuntimeException.class, ConfigurationManager::getConfiguration);
-  }
-  
-  @Test
-  @Order(3)
   public void testLocationsCanBeReturnedAsPaths() {
     System.setProperty("config", LOCATION_OF_TEST_CONFIG_FAKE_VALUES);
     List<Path> allPathsReturned = ConfigurationManager.getConfiguration().getRootLocationsAsPaths();
