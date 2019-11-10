@@ -22,6 +22,7 @@ public class SystemTest {
     UtilityForConfig.clearConfig();
   }
   
+  @SuppressWarnings("SqlWithoutWhere")
   @BeforeEach
   public void setupDatabase() throws SQLException {
     connection = UtilityForConnector.getOrInitializeConnection();
@@ -44,7 +45,6 @@ public class SystemTest {
         .setRootLocations(Arrays.asList("src/test/resources/root1", "src/test/resources/root2/"));
     
     DirectoryRecorder.setupScanning();
-//    DirectoryRecorder.startScanning();
   
     connection = UtilityForConnector.getOrInitializeConnection();
     Statement stmt = connection.createStatement();
@@ -57,4 +57,9 @@ public class SystemTest {
     Assertions.assertEquals(6, count);
   }
   
+  @Test
+  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() {
+    DirectoryRecorder.setupScanning();
+    DirectoryRecorder.scanOnce();
+  }
 }

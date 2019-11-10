@@ -47,33 +47,40 @@ public class DirectoryRecorder {
   static void startScanning() {
     logger.trace("startScanning");
     while (true) {
-      for (Map.Entry<Path, WatchKey> watchKey : directoriesWatching.entrySet()) {
-        List<FileCommand> rowsToProcess = watchKey
+      scanOnce();
+    }
+  }
+  
+  static void scanOnce() {
+    for (Map.Entry<Path, WatchKey> watchKey : directoriesWatching.entrySet()) {
+      List<FileCommand> rowsToProcess = pollForFileChanges(watchKey);
+      
+      List<FileInformation> toDelete = filterFilesOfCommand(rowsToProcess, DatabaseCommand.Delete);
+      List<FileInformation> toUpdate = filterFilesOfCommand(rowsToProcess, DatabaseCommand.Update);
+      List<FileInformation> toInsert = filterFilesOfCommand(rowsToProcess, DatabaseCommand.Insert);
+      
+      Deleter.sendDeletesToDatabase(toDelete);
+      Updater.sendUpdatesToDatabase(toUpdate);
+      Inserter.insertFilesIntoDatabase(toInsert);
+      
+      watchKey.getValue().reset();
+    }
+  }
+  
+  private static List<FileInformation> filterFilesOfCommand(List<FileCommand> rowsToProcess,
+                                                            DatabaseCommand commandType) {
+    return rowsToProcess.parallelStream()
+        .filter(fileCommand -> fileCommand.command.equals(commandType))
+        .map(fileCommand -> fileCommand.information).collect(Collectors.toList());
+  }
+  
+  private static List<FileCommand> pollForFileChanges(Map.Entry<Path, WatchKey> watchKey) {
+    return watchKey
             .getValue()
             .pollEvents()
             .parallelStream()
             .map(watchEvent -> watchEventToFileCommand(watchEvent, watchKey.getKey()))
             .collect(Collectors.toList());
-        
-        List<FileInformation> toDelete = rowsToProcess.parallelStream()
-            .filter(fileCommand -> fileCommand.command.equals(DatabaseCommand.Delete))
-            .map(fileCommand -> fileCommand.information).collect(Collectors.toList());
-        
-        List<FileInformation> toUpdate = rowsToProcess.parallelStream()
-            .filter(fileCommand -> fileCommand.command.equals(DatabaseCommand.Update))
-            .map(fileCommand -> fileCommand.information).collect(Collectors.toList());
-        
-        List<FileInformation> toInsert = rowsToProcess.parallelStream()
-            .filter(fileCommand -> fileCommand.command.equals(DatabaseCommand.Insert))
-            .map(fileCommand -> fileCommand.information).collect(Collectors.toList());
-        
-        Deleter.sendDeletesToDatabase(toDelete);
-        Updater.sendUpdatesToDatabase(toUpdate);
-        Inserter.insertFilesIntoDatabase(toInsert);
-        
-        watchKey.getValue().reset();
-      }
-    }
   }
   
   private static FileCommand watchEventToFileCommand(final WatchEvent<?> watchEvent, final Path pathToDirectory) {
