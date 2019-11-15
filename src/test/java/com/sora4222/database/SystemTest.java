@@ -3,19 +3,29 @@ package com.sora4222.database;
 import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.configuration.UtilityForConfig;
 import com.sora4222.database.connectors.UtilityForConnector;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.*;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
 public class SystemTest {
   private static final String LOCATION_OF_ROOT_ONE_ROOT_TWO = "src/test/resources/root1AndRoot2.json";
   private static String dataTable = ConfigurationManager.getConfiguration().getDataTable();
   
   Connection connection;
+  File temporaryFile = new File("");
+  Logger logger = LogManager.getLogger();
   
   @BeforeAll
   public static void resetConfig() {
@@ -40,6 +50,18 @@ public class SystemTest {
     connection.close();
   }
   
+  @AfterEach
+  public void deleteFile() {
+    if (temporaryFile.exists() && temporaryFile.isFile())
+      temporaryFile.delete();
+  }
+  
+  private ResultSet getDatabaseContents() throws SQLException {
+    connection = UtilityForConnector.getOrInitializeConnection();
+    Statement stmt = connection.createStatement();
+    return stmt.executeQuery("SELECT * FROM " + dataTable);
+  }
+  
   @Test
   public void RunScannerSetupRootOneAndTwo() throws SQLException {
     System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
@@ -51,10 +73,7 @@ public class SystemTest {
     
     DirectoryRecorder.setupScanning();
   
-    connection = UtilityForConnector.getOrInitializeConnection();
-    Statement stmt = connection.createStatement();
-    ResultSet files = stmt.executeQuery("SELECT * FROM " + dataTable);
-    
+    ResultSet files = getDatabaseContents();
     int count = 0;
     while (files.next()) {
       count++;
@@ -63,11 +82,43 @@ public class SystemTest {
   }
   
   @Test
-  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() {
+  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() throws IOException, SQLException {
     System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
     UtilityForConfig.clearConfig();
     
     DirectoryRecorder.setupScanning();
+  
+    String randomName = UUID.randomUUID().toString() + ".txt";
+  
+    // Make a file
+    temporaryFile = new File("src/test/resources/root1/" + randomName);
+    FileWriter writer = new FileWriter(temporaryFile);
+    writer.write(UUID.randomUUID().toString());
+    writer.close();
+  
+    Assertions.assertTrue(temporaryFile.exists());
+    
     DirectoryRecorder.scanOnce();
+  
+    // Check the file is in the database
+    ResultSet databaseContents = getDatabaseContents();
+    List<String> filePaths = new LinkedList<>();
+    while (databaseContents.next()) {
+      filePaths.add(databaseContents.getString("FilePath"));
+    }
+    Assertions.assertTrue(filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")));
+  
+    // Delete the file
+    Assertions.assertTrue(temporaryFile.delete());
+  
+    DirectoryRecorder.scanOnce();
+  
+    databaseContents = getDatabaseContents();
+  
+    filePaths = new LinkedList<>();
+    while (databaseContents.next()) {
+      filePaths.add(databaseContents.getString("FilePath"));
+    }
+    Assertions.assertFalse(filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")));
   }
 }

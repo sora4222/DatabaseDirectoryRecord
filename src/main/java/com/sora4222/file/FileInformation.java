@@ -1,12 +1,11 @@
 package com.sora4222.file;
 
+import com.sora4222.database.configuration.ComputerProperties;
+import lombok.Getter;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-
-import com.sora4222.database.FileCommand;
-import com.sora4222.database.configuration.ComputerProperties;
-import lombok.Getter;
 
 
 public class FileInformation {
@@ -48,7 +47,14 @@ public class FileInformation {
     this.fullLocation = fullLocation.toAbsolutePath();
     this.computerName = computerName;
     this.fileHash = fileHash;
-    
+  
+    this.creationTime = LocalDateTime.now();
+  }
+  
+  public FileInformation(Path fullLocation) {
+    this.fullLocation = fullLocation;
+    this.fileHash = "";
+    this.computerName = ComputerProperties.computerName.get();
     this.creationTime = LocalDateTime.now();
   }
   
@@ -59,7 +65,6 @@ public class FileInformation {
     
     this.creationTime = LocalDateTime.now();
   }
-  
   /**
    * Creates a FileInformation object that will be passed in it's datetime. This is intended
    * to be used with the received FileInformation from database objects.

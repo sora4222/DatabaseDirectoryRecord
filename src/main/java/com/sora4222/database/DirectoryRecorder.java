@@ -78,15 +78,31 @@ public class DirectoryRecorder {
             .pollEvents()
             .parallelStream()
             .map(watchEvent -> watchEventToFileCommand(watchEvent, watchKey.getKey()))
+        .filter(fileCommand -> !fileCommand.command.equals(DatabaseCommand.BadEntry))
             .collect(Collectors.toList());
   }
   
-  private static FileCommand watchEventToFileCommand(final WatchEvent<?> watchEvent, final Path pathToDirectory) {
+  private static FileCommand watchEventToFileCommand(final WatchEvent watchEvent, final Path pathToDirectory) {
+    try {
+      @SuppressWarnings("unchecked") Path pathToFile = pathToDirectory.resolve(((WatchEvent<Path>) watchEvent).context());
+      DatabaseCommand commandForChange = eventToCommandMap.get(watchEvent.kind());
+      
+      logger.debug("Command for change reported: " + commandForChange.toString());
+      if (checkForDeletion(pathToFile, commandForChange))
+        return new FileCommand(new FileInformation(pathToFile), commandForChange);
+      
+      FileInformation file = convertPathToFileInformation(pathToFile);
+      return new FileCommand(file, commandForChange);
+    } catch (ClassCastException e) {
+      logger.info("A watch event couldn't be cast to a path, directory path: " + pathToDirectory.toString());
+      return new FileCommand(null, DatabaseCommand.BadEntry);
+    }
     
-    FileInformation file = convertPathToFileInformation(pathToDirectory);
-    DatabaseCommand commandForChange = eventToCommandMap.get(watchEvent.kind());
-    
-    return new FileCommand(file, commandForChange);
+  }
+  
+  private static boolean checkForDeletion(Path pathToFile, DatabaseCommand commandForChange) {
+    return commandForChange.equals(DatabaseCommand.Delete) ||
+        (commandForChange.equals(DatabaseCommand.Update) && !pathToFile.toFile().exists());
   }
   
   static void setupScanning() {

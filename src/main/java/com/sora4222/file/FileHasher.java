@@ -59,7 +59,15 @@ public class FileHasher {
   public String hashFile() {
     digestFile();
     byte[] resultantDigest = digester.digest();
+  
+    try {
+      fileToHash.close();
+    } catch (IOException e) {
+      logger.error("A filestream for a FileHasher could not be closed.", e);
+    }
+    
     return HexBin.encode(resultantDigest);
+  
   }
   
   /**
@@ -91,8 +99,6 @@ public class FileHasher {
     long i = 0L;
     try {
       while (i * multiplier < fileToHash.length()) {
-//        logger.debug(String.format("Location: %d, expected next location %d",
-//            fileToHash.getFilePointer(), (i + 1) * multiplier));
         
         fileToHash.seek(i++ * multiplier);
         digester.update(fileToHash.readByte());
