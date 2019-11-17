@@ -21,7 +21,7 @@ public class ConnectionStorage {
             int i = 0;
             try {
                 if(i++ != 0)
-                    Thread.sleep((int) (100 * Math.exp(Math.min(i, 10))));
+                  backOffConnectionAttempts(i);
                 initialize();
                 break;
             } catch (SQLException e) {
@@ -29,11 +29,8 @@ public class ConnectionStorage {
                     config.getJdbcConnectionUrl(), e.getMessage()));
             } catch (NoSuchFieldException e) {
                 logger.error(
-                    String.format("A required field is missing for this application to start %s", e.getMessage()),
-                    e);
+                    String.format("A required field is missing for this application to start %s", e.getMessage()), e);
                 throw new RuntimeException(e);
-            } catch (InterruptedException e) {
-                logger.error(e);
             }
         }
     }
@@ -49,23 +46,26 @@ public class ConnectionStorage {
                 config.getDatabaseUsername(),
                 config.getDatabasePassword());
     }
-
-    private static void checkAndHandleDeadConnection() {
-        try {
-            if (connect.isClosed() || !connect.isValid(35)) {
-                initialize();
-            }
-        } catch (SQLException e) {
-            logger.error("The database whilst attempting to reconnect has failed.");
-            throw new RuntimeException(e);
-        } catch (NoSuchFieldException e) {
-            // Shouldn't ever happen as initialization should catch this.
-            logger.error(e);
-            throw new RuntimeException(e);
-        }
+  
+  /**
+   * @return If the connection is successfully made this will return a true
+   */
+  private static boolean checkAndHandleDeadConnection() {
+    try {
+      if (connect.isClosed() || !connect.isValid(1000)) {
+        initialize();
+      }
+      return !connect.isValid(1000);
+    } catch (SQLException e) {
+      logger.error("The database whilst attempting to reconnect has failed.");
+    } catch (NoSuchFieldException e) {
+      // Shouldn't ever happen as initialization should catch this.
+      logger.error(e);
     }
-    
-    public static void close() {
+    return false;
+  }
+  
+  public static void close() {
         try{
             connect.close();
         } catch (SQLException e) {
@@ -79,17 +79,21 @@ public class ConnectionStorage {
      * @return A connection to the database without any wrapper.
      */
     static Connection getConnection () {
-        checkAndHandleDeadConnection();
-        return connect;
+        int i = 0;
+      while (checkAndHandleDeadConnection()) {
+        backOffConnectionAttempts(i++);
+      }
+  
+      return connect;
     }
 
-    private void backOffConnectionAttempts (int numberOfConnectionAttempts) {
-        if (numberOfConnectionAttempts > 1) {
+     private static void backOffConnectionAttempts(int numberOfConnectionAttempts) {
+       if (numberOfConnectionAttempts > 1) {
             try {
-                if (numberOfConnectionAttempts <= 10)
-                    TimeUnit.MILLISECONDS.sleep(100 * (long) Math.exp(numberOfConnectionAttempts));
+              if (numberOfConnectionAttempts <= 9)
+                TimeUnit.MILLISECONDS.sleep(100 * (long) Math.exp(numberOfConnectionAttempts));
                 else
-                    TimeUnit.HOURS.sleep(1);
+                TimeUnit.MINUTES.sleep(1);
             } catch (InterruptedException e) {
                 logger.error(
                     "An interrupted exception occurred whilst backing off the number of connection attempts.",

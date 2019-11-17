@@ -24,24 +24,6 @@ public class DatabaseQuery {
   private static final String allComputerFileCheck =
     "SELECT FilePath, FileHash FROM `" + config.getDataTable() + "` WHERE ComputerName=?";
   
-  public static boolean isFileInDatabase (FileInformation fileToCheck) {
-    Connection connection = ConnectionStorage.getConnection();
-    
-    try {
-      PreparedStatement checkFileStatement = connection.prepareStatement(singleFileCheckQuery);
-      checkFileStatement.setString(1, ComputerProperties.computerName.get());
-      checkFileStatement.setString(2, fileToCheck.getFullLocation().toString());
-      ResultSet results = checkFileStatement.executeQuery();
-      
-      if (results.next())
-        return true;
-    } catch (SQLException e) {
-      logger.error("Checking for file in database query template: " + singleFileCheckQuery, e);
-      throw new RuntimeException(e);
-    }
-    return false;
-  }
-  
   public static Collection<FileInformation> allFilesAlreadyInBothComputerAndDatabase(List<FileInformation> filesInHardDrive) {
     Connection connection = ConnectionStorage.getConnection();
     try {
