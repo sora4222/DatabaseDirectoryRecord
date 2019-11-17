@@ -74,12 +74,12 @@ public class DirectoryRecorder {
   
   private static List<FileCommand> pollForFileChanges(Map.Entry<Path, WatchKey> watchKey) {
     return watchKey
-            .getValue()
-            .pollEvents()
-            .parallelStream()
-            .map(watchEvent -> watchEventToFileCommand(watchEvent, watchKey.getKey()))
+        .getValue()
+        .pollEvents()
+        .parallelStream()
+        .map(watchEvent -> watchEventToFileCommand(watchEvent, watchKey.getKey()))
         .filter(fileCommand -> !fileCommand.command.equals(DatabaseCommand.BadEntry))
-            .collect(Collectors.toList());
+        .collect(Collectors.toList());
   }
   
   private static FileCommand watchEventToFileCommand(final WatchEvent watchEvent, final Path pathToDirectory) {
@@ -154,7 +154,7 @@ public class DirectoryRecorder {
           .filter(path -> path.toFile().isFile())
           .map(path -> convertPathToFileInformation(path))
           .collect(Collectors.toList());
-  
+    
       return DatabaseQuery
           .allFilesAlreadyInBothComputerAndDatabase(existingFiles)
           .parallelStream()
