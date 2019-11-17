@@ -82,7 +82,7 @@ public class SystemTest {
   }
   
   @Test
-  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() throws IOException, SQLException {
+  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() throws IOException, SQLException, InterruptedException {
     System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
     UtilityForConfig.clearConfig();
     
@@ -111,14 +111,19 @@ public class SystemTest {
     // Delete the file
     Assertions.assertTrue(temporaryFile.delete());
   
-    DirectoryRecorder.scanOnce();
+    int i = 0;
+    int maxRetries = 10;
+    do {
+      DirectoryRecorder.scanOnce();
+      databaseContents = getDatabaseContents();
+    
+      filePaths = new LinkedList<>();
+      while (databaseContents.next()) {
+        filePaths.add(databaseContents.getString("FilePath"));
+      }
+    } while (filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")) && i++ < maxRetries);
   
-    databaseContents = getDatabaseContents();
-  
-    filePaths = new LinkedList<>();
-    while (databaseContents.next()) {
-      filePaths.add(databaseContents.getString("FilePath"));
-    }
-    Assertions.assertFalse(filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")));
+    Assertions.assertFalse(filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")),
+        "No more retries to test whether the database has deleted the files");
   }
 }

@@ -53,7 +53,6 @@ public class DatabaseQuery {
       
       final HashSet<FileInformation> hardDriveFiles = new HashSet<>(filesInHardDrive);
       while (resultSet.next()) {
-        logger.debug("Next iteration for ");
         hardDriveFiles.remove(
           new FileInformation(
             resultSet.getString("FilePath"),

@@ -30,11 +30,11 @@ public class Deleter {
       for(FileInformation fileToDelete: filesInDBToDelete) {
         deleteStatement.setString(1, fileToDelete.getFullLocationAsLinuxBasedString());
         deleteStatement.setString(2, ComputerProperties.computerName.get());
-
-        System.out.println(deleteStatement.toString());
-        logger.info("SQL statement to execute: " + deleteStatement.toString());
-        deleteStatement.execute();
-        System.out.println(deleteStatement.getUpdateCount());
+  
+        String delete = deleteStatement.toString();
+        logger.debug("SQL delete statement to execute: " + deleteStatement.toString());
+        deleteStatement.executeUpdate();
+        logger.debug("Update count: " + deleteStatement.getUpdateCount());
       }
       
     } catch (SQLException e) {
