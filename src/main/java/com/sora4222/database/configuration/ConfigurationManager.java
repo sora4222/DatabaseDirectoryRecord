@@ -45,7 +45,9 @@ public class ConfigurationManager {
   }
   
   private static void checkDatabaseDetailsAreSet() {
-  
+    if (heldConfig == null)
+      heldConfig = new Config();
+    
     if (heldConfig.getDatabasePassword().isEmpty()) {
       logger.debug("Database password is being set to: " + System.getProperty("databasePassword"));
       heldConfig.setDatabasePassword(System.getProperty("databasePassword"));
