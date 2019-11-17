@@ -52,19 +52,13 @@ public class FileInformation {
   }
   
   public FileInformation(Path fullLocation) {
-    this.fullLocation = fullLocation;
-    this.fileHash = "";
-    this.computerName = ComputerProperties.computerName.get();
-    this.creationTime = LocalDateTime.now();
+    this(fullLocation, ComputerProperties.computerName.get(), "");
   }
   
   public FileInformation(Path fullLocation, String fileHash) {
-    this.fullLocation = fullLocation.toAbsolutePath();
-    this.computerName = ComputerProperties.computerName.get();
-    this.fileHash = fileHash;
-    
-    this.creationTime = LocalDateTime.now();
+    this(fullLocation, ComputerProperties.computerName.get(), fileHash);
   }
+  
   /**
    * Creates a FileInformation object that will be passed in it's datetime. This is intended
    * to be used with the received FileInformation from database objects.
