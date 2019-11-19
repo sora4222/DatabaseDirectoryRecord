@@ -4,6 +4,7 @@ plugins {
     id "io.freefair.lombok" version "4.1.4"
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "nebula.rpm" version "8.0.3"
+    id "nebula.deb" version "8.0.3"
 }
 
 group 'com.sora4222.database'
@@ -68,6 +69,29 @@ test {
 task buildRpm(type: Rpm) {
     dependsOn shadowJar
     version = project.version.toString().replace('-','_')
+    
+    into '/opt/database_directory_recorder'
+
+    from(jar.outputs.files) {
+        into 'lib'
+        fileMode = 0550
+    }
+    from('scripts') {
+        into 'scripts'
+        fileMode = 0555
+    }
+    from('src/main/resources') {
+        fileType CONFIG | NOREPLACE
+        into 'conf'
+    }
+    link("/opt/database_directory_recorder/lib/database_directory_recorder" , "/opt/database_directory_recorder/lib/" + jar.outputs.files.first())
+}
+
+task buildDeb(type: Deb) {
+    dependsOn shadowJar
+
+    packageName project.name.toLowerCase()
+    version = project.version.toString()
 
     into '/opt/database_directory_recorder'
 
@@ -78,6 +102,10 @@ task buildRpm(type: Rpm) {
     from('scripts') {
         into 'scripts'
         fileMode = 0555
+    }
+    from('src/main/resources') {
+        fileType CONFIG | NOREPLACE
+        into 'conf'
     }
     link("/opt/database_directory_recorder/lib/database_directory_recorder" , "/opt/database_directory_recorder/lib/" + jar.outputs.files.first())
 }
