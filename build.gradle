@@ -1,11 +1,13 @@
 plugins {
     id 'java'
-    id 'war'
-    id "io.freefair.lombok" version "3.8.4"
+    id 'application'
+    id "io.freefair.lombok" version "4.1.4"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "nebula.rpm" version "8.0.3"
 }
 
 group 'com.sora4222.database'
-version '1.0-SNAPSHOT'
+version '1.0.0-Alpha'
 
 sourceCompatibility = 1.8
 
@@ -13,9 +15,11 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    providedCompile group: 'org.projectlombok', name: 'lombok', version: '1.18.8'
+application {
+    mainClassName = 'com.sora4222.database.DirectoryRecorder'
+}
 
+dependencies {
     // Databases
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.17'
 
@@ -61,3 +65,19 @@ test {
     useJUnitPlatform()
 }
 
+task buildRpm(type: Rpm) {
+    dependsOn shadowJar
+    version = project.version.toString().replace('-','_')
+
+    into '/opt/database_directory_recorder'
+
+    from(jar.outputs.files) {
+        into 'lib'
+        fileMode = 0550
+    }
+    from('scripts') {
+        into 'scripts'
+        fileMode = 0555
+    }
+    link("/opt/database_directory_recorder/lib/database_directory_recorder" , "/opt/database_directory_recorder/lib/" + jar.outputs.files.first())
+}

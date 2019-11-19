@@ -1,0 +1,13 @@
+[Unit]
+Description=Database Directory Recorder service - Will record files in defined root directories to a database.
+
+[Service]
+WorkingDirectory=/opt/database_directory_recorder/lib/
+ExecStart=/bin/java -Xms256m -Xmx2g -jar database_directory_recorder
+User=jvmapps
+Type=simple
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,43 @@
+Configuration:
+  status: warn
+  name: testConfiguration
+  properties:
+    property:
+      - name: filename
+        value: currentLog.log
+      - name: basedir
+        value: /var/logs/database_directory_recorder
+
+  thresholdFilter:
+    level: warn
+  appenders:
+    Console:
+      name: STDOUT
+      LogstashLayout:
+        dateTimeFormatPattern: "yyyy-MM-dd HH:mm:ss.SSSZZZ"
+        stackTraceEnabled: true
+    RollingFile:
+      name: File
+      fileName: ${basedir}${filename}
+      filePattern: "log-%d{yyyy-MM-dd}.log"
+      LogstashLayout:
+        dateTimeFormatPattern: "yyyy-MM-dd HH:mm:ss.SSSZZZ"
+        stackTraceEnabled: true
+      Filters:
+        ThresholdFilter:
+          level: warn
+      Policies:
+        TimeBasedTriggeringPolicy:
+          interval: 1
+          modulate: true
+      DefaultRolloverStrategy:
+        Delete:
+          basePath: ${basedir}
+          IfLastModified:
+            age: 3d
+
+  Loggers:
+    Root:
+      level: warn
+      AppenderRef:
+        ref: STDOUT
