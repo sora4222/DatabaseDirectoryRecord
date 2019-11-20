@@ -20,6 +20,14 @@ application {
     mainClassName = 'com.sora4222.database.DirectoryRecorder'
 }
 
+jar {
+    manifest {
+        attributes(
+                'Main-Class': application.mainClassName
+        )
+    }
+}
+
 dependencies {
     // Databases
     compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.17'
@@ -72,7 +80,7 @@ task buildRpm(type: Rpm) {
     
     into '/opt/database_directory_recorder'
 
-    from(jar.outputs.files) {
+    from(shadowJar.outputs.files.singleFile) {
         into 'lib'
         fileMode = 0550
     }
@@ -84,7 +92,8 @@ task buildRpm(type: Rpm) {
         fileType CONFIG | NOREPLACE
         into 'conf'
     }
-    link("/opt/database_directory_recorder/lib/database_directory_recorder" , "/opt/database_directory_recorder/lib/" + jar.outputs.files.first())
+    link("/opt/database_directory_recorder/lib/database_directory_recorder.jar" ,
+            "/opt/database_directory_recorder/lib/" + shadowJar.outputs.files.singleFile.name)
 }
 
 task buildDeb(type: Deb) {
@@ -92,10 +101,9 @@ task buildDeb(type: Deb) {
 
     packageName project.name.toLowerCase()
     version = project.version.toString()
-
     into '/opt/database_directory_recorder'
 
-    from(jar.outputs.files) {
+    from(shadowJar.outputs.files.singleFile) {
         into 'lib'
         fileMode = 0550
     }
@@ -107,5 +115,6 @@ task buildDeb(type: Deb) {
         fileType CONFIG | NOREPLACE
         into 'conf'
     }
-    link("/opt/database_directory_recorder/lib/database_directory_recorder" , "/opt/database_directory_recorder/lib/" + jar.outputs.files.first())
+    link("/opt/database_directory_recorder/lib/database_directory_recorder.jar" ,
+            "/opt/database_directory_recorder/lib/" + shadowJar.outputs.files.singleFile.name)
 }

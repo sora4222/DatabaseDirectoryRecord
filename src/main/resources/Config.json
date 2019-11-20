@@ -1,0 +1,10 @@
+{
+  "databasePassword": "password",
+  "databaseUsername": "username",
+  "dataTable": "table",
+  "jdbcConnectionUrl": "jdbc:databasetype://your_uri",
+  "rootLocations": [
+    "/opt/database_directory/root1",
+    "/home/"
+  ]
+}
