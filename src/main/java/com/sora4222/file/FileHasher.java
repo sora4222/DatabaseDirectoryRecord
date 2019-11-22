@@ -35,9 +35,11 @@ public class FileHasher {
       logger.fatal(e);
       throw new RuntimeException(e);
     }
-    logger.info(String.format("File to hash: %s, size: '%s' bytes",
+  
+    logger.debug(String.format("File to hash: %s, size: '%s' bytes",
         fileToHash.getName(), fileToHash.length()));
     setMultiplier();
+  
     try {
       digester = MessageDigest.getInstance("SHA-1");
     } catch (NoSuchAlgorithmException e) {

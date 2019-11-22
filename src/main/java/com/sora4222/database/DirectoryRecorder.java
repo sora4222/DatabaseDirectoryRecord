@@ -92,9 +92,15 @@ public class DirectoryRecorder {
         return new FileCommand(new FileInformation(pathToFile), commandForChange);
       
       FileInformation file = convertPathToFileInformation(pathToFile);
-      return new FileCommand(file, commandForChange);
+      if (!file.equals(FileInformation.EmptyFileInformation))
+        return new FileCommand(file, commandForChange);
+      else
+        return new FileCommand(file, DatabaseCommand.BadEntry);
     } catch (ClassCastException e) {
       logger.info("A watch event couldn't be cast to a path, directory path: " + pathToDirectory.toString());
+      return new FileCommand(null, DatabaseCommand.BadEntry);
+    } catch (RuntimeException e) {
+      logger.warn(e);
       return new FileCommand(null, DatabaseCommand.BadEntry);
     }
     
@@ -153,6 +159,7 @@ public class DirectoryRecorder {
           .parallel()
           .filter(path -> path.toFile().isFile())
           .map(path -> convertPathToFileInformation(path))
+          .filter(fileInformation -> !fileInformation.equals(FileInformation.EmptyFileInformation))
           .collect(Collectors.toList());
     
       return DatabaseQuery
@@ -168,8 +175,13 @@ public class DirectoryRecorder {
   }
   
   private static FileInformation convertPathToFileInformation(final Path path) {
-    FileHasher hasher = new FileHasher(path.toFile());
-    return new FileInformation(path, ComputerProperties.computerName.get(), hasher.hashFile());
+    try {
+      FileHasher hasher = new FileHasher(path.toFile());
+      return new FileInformation(path, ComputerProperties.computerName.get(), hasher.hashFile());
+    } catch (RuntimeException e) {
+      logger.warn("Converting a path to a file information or hashing a file has failed", e);
+      return FileInformation.EmptyFileInformation;
+    }
   }
   
   private static FileCommand getUpdateType(final List<FileInformation> existingFiles, final FileInformation fileOfInterest) {
@@ -209,6 +221,7 @@ public class DirectoryRecorder {
       return objectsInConfigurationDirectories
           .filter(path -> path.toFile().isFile())
           .map(path -> convertPathToFileInformation(path))
+          .filter(fileInformation -> !fileInformation.equals(FileInformation.EmptyFileInformation))
           .collect(Collectors.toList());
     } catch (IOException e) {
       logger.error(String.format("The configured path has had an error: %s", confDirPath.toString()), e);

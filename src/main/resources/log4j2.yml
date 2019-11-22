@@ -6,7 +6,7 @@ Configuration:
       - name: filename
         value: currentLog.log
       - name: basedir
-        value: log/
+        value: /var/log/database-directory-recorder/
 
   thresholdFilter:
     level: error
@@ -34,7 +34,7 @@ Configuration:
         Delete:
           basePath: ${basedir}
           IfLastModified:
-            age: 10d
+            age: 2d
 
   Loggers:
     Root:

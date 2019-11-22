@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 
 public class FileInformation {
-  
+  public static final FileInformation EmptyFileInformation = new FileInformation(Paths.get(""));
   @Getter private final Path fullLocation;
   @Getter private final String computerName;
   @Getter private final String fileHash;

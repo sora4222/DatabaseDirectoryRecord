@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
+
 plugins {
     id 'java'
     id 'application'
@@ -8,7 +10,7 @@ plugins {
 }
 
 group 'com.sora4222.database'
-version '1.0.0-Alpha'
+version '1.0.1-Alpha'
 
 sourceCompatibility = 1.8
 
@@ -72,6 +74,10 @@ test {
     maxHeapSize = "4g"
     
     useJUnitPlatform()
+}
+
+shadowJar {
+    transform(Log4j2PluginsCacheFileTransformer)
 }
 
 task buildRpm(type: Rpm) {
