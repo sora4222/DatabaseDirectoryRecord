@@ -7,6 +7,8 @@ plugins {
     id "com.github.johnrengelman.shadow" version "5.2.0"
     id "nebula.rpm" version "8.0.3"
     id "nebula.deb" version "8.0.3"
+    id 'edu.sc.seis.launch4j' version '2.4.6'
+
 }
 
 group 'com.sora4222.database'
@@ -124,3 +126,11 @@ task buildDeb(type: Deb) {
     link("/opt/database_directory_recorder/lib/database_directory_recorder.jar" ,
             "/opt/database_directory_recorder/lib/" + shadowJar.outputs.files.singleFile.name)
 }
+
+launch4j {
+    mainClassName = application.mainClassName
+    jar = "${projectDir}/build/libs/${project.tasks.shadowJar.outputs.files.singleFile.name}"
+
+}
+
+createExe.dependsOn(shadowJar)
