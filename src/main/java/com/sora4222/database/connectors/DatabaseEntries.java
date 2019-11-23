@@ -127,7 +127,7 @@ class DatabaseLookup {
       return countResult.getInt("total");
         
         } catch (SQLException e) {
-      logger.error("Exception occurred trying to count the queue for files from the database", e);
+      logger.error("Exception occurred trying to count the queue for files from the database: " + e.toString());
       throw new RuntimeException(e);
     } catch (AssertionError e) {
       logger.error(e);

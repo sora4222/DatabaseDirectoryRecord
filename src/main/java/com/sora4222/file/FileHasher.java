@@ -32,7 +32,7 @@ public class FileHasher {
     try {
       this.fileToHash = new RandomAccessFile(fileToHash, "r");
     } catch (FileNotFoundException e) {
-      logger.fatal(e);
+      logger.warn(e);
       throw new RuntimeException(e);
     }
   
@@ -43,7 +43,7 @@ public class FileHasher {
     try {
       digester = MessageDigest.getInstance("SHA-1");
     } catch (NoSuchAlgorithmException e) {
-      logger.fatal(e.getMessage());
+      logger.error(e.getMessage());
       throw new RuntimeException(e);
     }
   }
@@ -92,7 +92,7 @@ public class FileHasher {
         multiplier = megabyte;
       }
     } catch (IOException e) {
-      logger.fatal(e);
+      logger.warn(e);
       throw new RuntimeException(e);
     }
   }
@@ -106,7 +106,7 @@ public class FileHasher {
         digester.update(fileToHash.readByte());
       }
     } catch (IOException e) {
-      logger.fatal(e);
+      logger.error(e);
       throw new RuntimeException(e);
     }
   }

@@ -6,7 +6,9 @@
 #     PRIMARY KEY(FilePath, ComputerName)
 # );
 # The script above is preferable but will result in: Specified key was too long; max key length is 3072 bytes
-CREATE TABLE directory_records
+CREATE DATABASE directory_records_db;
+USE directory_records_db;
+CREATE TABLE directory_records_db.directory_records
 (
     FilePath                varchar(600),
     FileHash                varchar(100),
