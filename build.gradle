@@ -71,10 +71,10 @@ test {
     systemProperty "databaseUsername", System.getProperty("databaseUsername")
     systemProperty "jdbcConnectionUrl", System.getProperty("jdbcConnectionUrl")
     systemProperty "dataTable", System.getProperty("dataTable")
-    
+
     minHeapSize = "256m"
     maxHeapSize = "4g"
-    
+
     useJUnitPlatform()
 }
 
@@ -82,10 +82,16 @@ shadowJar {
     transform(Log4j2PluginsCacheFileTransformer)
 }
 
+launch4j {
+    mainClassName = application.mainClassName
+    jar = "${projectDir}/build/libs/${project.tasks.shadowJar.outputs.files.singleFile.name}"
+
+}
+
 task buildRpm(type: Rpm) {
     dependsOn shadowJar
     version = project.version.toString().replace('-','_')
-    
+
     into '/opt/database_directory_recorder'
 
     from(shadowJar.outputs.files.singleFile) {
@@ -127,9 +133,6 @@ task buildDeb(type: Deb) {
             "/opt/database_directory_recorder/lib/" + shadowJar.outputs.files.singleFile.name)
 }
 
-launch4j {
-    mainClassName = application.mainClassName
-    jar = "${projectDir}/build/libs/${project.tasks.shadowJar.outputs.files.singleFile.name}"
 
 }
 

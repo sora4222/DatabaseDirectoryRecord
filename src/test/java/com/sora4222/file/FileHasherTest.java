@@ -1,31 +1,17 @@
 package com.sora4222.file;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.net.URL;
 import java.util.Random;
 
 class FileHasherTest {
   
   private static Logger logger = LogManager.getLogger();
   private static File constantFile = new File("src/test/resources/tempConstant.txt");
-  
-  @BeforeAll
-  static void downloadConstantFile() throws IOException {
-    try {
-      final URL constantFileLocation = new URL("https", "sora4222.com", "/files/constantFile.txt");
-      FileUtils.copyURLToFile(constantFileLocation, constantFile);
-    } catch (IOException e) {
-      logger.error(e);
-      throw e;
-    }
-  }
   
   @Test
   void testTheHasherHashesValuesSmall() {
