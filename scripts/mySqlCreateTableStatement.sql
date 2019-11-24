@@ -1,18 +1,31 @@
-# CREATE TABLE directory_records(
-#     FilePath varchar(2500),
-#     FileHash varchar(100),
-#     ComputerName varchar(300),
-#     DatabaseRowCreationTime datetime default CURRENT_TIMESTAMP,
-#     PRIMARY KEY(FilePath, ComputerName)
-# );
-# The script above is preferable but will result in: Specified key was too long; max key length is 3072 bytes
-CREATE DATABASE directory_records_db;
+CREATE SCHEMA IF NOT EXISTS directory_records_db;
 USE directory_records_db;
-CREATE TABLE directory_records_db.directory_records
+
+DROP TABLE IF EXISTS directory_records_test;
+DROP TABLE IF EXISTS computer_names;
+DROP TABLE IF EXISTS file_paths;
+
+CREATE TABLE IF NOT EXISTS file_paths
 (
-    FilePath                varchar(600),
+    FileIdNumber     int AUTO_INCREMENT,
+    AbsoluteFilePath varchar(2500),
+    PRIMARY KEY (FileIdNumber)
+);
+
+CREATE TABLE IF NOT EXISTS computer_names
+(
+    ComputerIdNumber int AUTO_INCREMENT,
+    ComputerName     varchar(300),
+    PRIMARY KEY (ComputerIdNumber)
+);
+
+CREATE TABLE IF NOT EXISTS directory_records_test
+(
+    FileNumber              int,
     FileHash                varchar(100),
-    ComputerName            varchar(100),
+    ComputerIdNumber        int,
     DatabaseRowCreationTime datetime default CURRENT_TIMESTAMP,
-    PRIMARY KEY (FilePath, ComputerName)
+    PRIMARY KEY (FileNumber, ComputerIdNumber),
+    FOREIGN KEY (FileNumber) REFERENCES file_paths (FileIdNumber),
+    FOREIGN KEY (ComputerIdNumber) REFERENCES computer_names (ComputerIdNumber)
 );

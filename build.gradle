@@ -12,7 +12,7 @@ plugins {
 }
 
 group 'com.sora4222.database'
-version '1.0.1-Alpha'
+version '1.0.0'
 
 sourceCompatibility = 1.8
 
@@ -134,6 +134,13 @@ task buildDeb(type: Deb) {
 }
 
 
-}
+//task buildAllBinaries {
+//    dependsOn shadowJar
+//    dependsOn buildDeb
+//    dependsOn createExe
+//    doLast {
+//     println("All binaries were built.")
+//    }
+//}
 
 createExe.dependsOn(shadowJar)
