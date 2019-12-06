@@ -1,6 +1,5 @@
 package com.sora4222.database;
 
-import com.sora4222.database.configuration.ComputerProperties;
 import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.connectors.*;
 import com.sora4222.file.FileHasher;
@@ -59,7 +58,7 @@ public class DirectoryRecorder {
       
       Deleter.sendDeletesToDatabase(toDelete);
       Updater.sendUpdatesToDatabase(toUpdate);
-      Inserter.insertFilesIntoDatabase(toInsert);
+      Inserter.insertRecordIntoDatabase(toInsert);
       
       watchKey.getValue().reset();
     }
@@ -139,14 +138,14 @@ public class DirectoryRecorder {
       logger.info(String.format("During seeding %d files were not in the database.", filesNotInTheDatabase.size()));
       
       // Upload those files.
-      Inserter.insertFilesIntoDatabase(filesNotInTheDatabase);
+      Inserter.insertRecordIntoDatabase(filesNotInTheDatabase);
   
       if (!Boolean.getBoolean("skipUpdateAndDelete")) {
         logger.info("Initial update and delete processing");
         List<FileCommand> updates = findUpdatesToDatabase(confDirPath);
         Updater.sendUpdatesToDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Update)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
         Deleter.sendDeletesToDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Delete)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
-        Inserter.insertFilesIntoDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Insert)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
+        Inserter.insertRecordIntoDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Insert)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
       }
     }
   }
@@ -177,7 +176,7 @@ public class DirectoryRecorder {
   private static FileInformation convertPathToFileInformation(final Path path) {
     try {
       FileHasher hasher = new FileHasher(path.toFile());
-      return new FileInformation(path, ComputerProperties.computerName.get(), hasher.hashFile());
+      return new FileInformation(path, hasher.hashFile());
     } catch (RuntimeException e) {
       logger.warn("Converting a path to a file information or hashing a file has failed", e);
       return FileInformation.EmptyFileInformation;

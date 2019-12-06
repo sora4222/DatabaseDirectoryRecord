@@ -17,10 +17,8 @@ public class Updater {
   private static Logger logger = LogManager.getLogger();
   private static final Config config = ConfigurationManager.getConfiguration();
   private static String updateCommand =
-    "UPDATE `" +
-      config.getDataTable() +
-      "` SET FileHash=? " +
-      "WHERE FilePath=? AND ComputerName=?";
+      "UPDATE `directory_records` SET FileHash=? " +
+          "WHERE FilePath=? AND ComputerIdNumber=?";
   
   public static void sendUpdatesToDatabase (final List<FileInformation> filesInDBToUpdate) {
     if(filesInDBToUpdate.size() == 0)
@@ -28,15 +26,15 @@ public class Updater {
     
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
-      PreparedStatement deleteStatement = databaseConnection.prepareCall(updateCommand);
+      PreparedStatement updateStmt = databaseConnection.prepareCall(updateCommand);
       for(FileInformation file: filesInDBToUpdate) {
-        deleteStatement.setString(1, file.getFileHash());
-        deleteStatement.setString(2, file.getFullLocation().toString());
-        deleteStatement.setString(3, ComputerProperties.computerName.get());
-        
-        deleteStatement.addBatch();
+        updateStmt.setString(1, file.getFileHash());
+        updateStmt.setString(2, file.getFullLocation().toString());
+        updateStmt.setInt(3, ComputerProperties.computerNameId.get());
+  
+        updateStmt.addBatch();
       }
-      deleteStatement.executeUpdate();
+      updateStmt.executeUpdate();
     } catch (SQLException e) {
       logger.error("There has been an error trying to delete a group of rows.", e);
     } finally {

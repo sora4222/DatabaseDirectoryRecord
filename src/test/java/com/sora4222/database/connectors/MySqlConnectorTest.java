@@ -59,7 +59,7 @@ public class MySqlConnectorTest {
     @Test
     public void InsertInformation () throws SQLException {
         testFiles.add(new FileInformation(location, fileHash));
-        Inserter.insertFilesIntoDatabase(testFiles);
+        Inserter.insertRecordIntoDatabase(testFiles);
         
         Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
     }
@@ -68,7 +68,7 @@ public class MySqlConnectorTest {
     public void InsertAndSelect () throws SQLException {
         FileInformation file = new FileInformation(location, fileHash);
         testFiles.add(file);
-        Inserter.insertFilesIntoDatabase(testFiles);
+        Inserter.insertRecordIntoDatabase(testFiles);
         
         Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
     }
@@ -77,7 +77,7 @@ public class MySqlConnectorTest {
     public void InsertThenDelete () throws SQLException {
         FileInformation fileToInsertAndDelete = new FileInformation(location, fileHash);
         testFiles.add(fileToInsertAndDelete);
-        Inserter.insertFilesIntoDatabase(testFiles);
+        Inserter.insertRecordIntoDatabase(testFiles);
         
         Deleter.sendDeletesToDatabase(testFiles);
         int expected = 0;
@@ -131,7 +131,7 @@ public class MySqlConnectorTest {
     @Test
     void allQueriesAcceptEmptyList() {
         Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesAlreadyInBothComputerAndDatabase(Collections.emptyList()));
-        Inserter.insertFilesIntoDatabase(Collections.emptyList());
+        Inserter.insertRecordIntoDatabase(Collections.emptyList());
         Updater.sendUpdatesToDatabase(Collections.emptyList());
         Deleter.sendDeletesToDatabase(Collections.emptyList());
     }

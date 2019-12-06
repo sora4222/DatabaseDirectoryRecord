@@ -25,37 +25,39 @@ public class DatabaseEntries {
   public DatabaseEntries(Path rootDirectoryPath) {
     fileGenerator = new DatabaseLookup(rootDirectoryPath.toAbsolutePath().toString().replace("\\", "/"));
   }
-    
-    // TODO: Check this
-    /**
-     * I want this to give me small batches of the files stored in the database.
-     * Each batch will follow on from the last one.
-     * https://www.baeldung.com/java-inifinite-streams
-     */
-
-    public Stream<FileInformation> getComputersFilesFromDatabase() {
-      Supplier<FileInformation> filesFromDatabase = () -> fileGenerator.getFiles();
-        return Stream.generate(filesFromDatabase);
-    }
+  
+  // TODO: Check this
+  
+  /**
+   * I want this to give me small batches of the files stored in the database.
+   * Each batch will follow on from the last one.
+   * https://www.baeldung.com/java-inifinite-streams
+   */
+  
+  public Stream<FileInformation> getComputersFilesFromDatabase() {
+    Supplier<FileInformation> filesFromDatabase = () -> fileGenerator.getFiles();
+    return Stream.generate(filesFromDatabase);
+  }
   
   public Integer databaseRecordCount() {
     return fileGenerator.count();
-    }
-
+  }
+  
 }
 
 class DatabaseLookup {
-    private static final Logger logger = LogManager.getLogger();
-    private static final Config config = ConfigurationManager.getConfiguration();
-    private static final String hostname;
+  private static final Logger logger = LogManager.getLogger();
+  private static final Config config = ConfigurationManager.getConfiguration();
+  private static final int hostnameId;
   private static final int number_of_records_at_a_time = 100000;
-    private static final Queue<FileInformation> filesToOutput = new LinkedList<>();
-    private String directory;
-    private int iteration;
-    
-    static {
-        hostname = ComputerProperties.computerName.get();
-    }
+  private static final Queue<FileInformation> filesToOutput = new LinkedList<>();
+  
+  static {
+    hostnameId = ComputerProperties.computerNameId.get();
+  }
+  
+  private String directory;
+  private int iteration;
   
   DatabaseLookup(String directory) {
     this.directory = directory;
@@ -63,51 +65,59 @@ class DatabaseLookup {
   }
   
   FileInformation getFiles() {
-        if(filesToOutput.isEmpty()){
-            fillQueue();
-        }
-
-        return filesToOutput.poll();
+    if (filesToOutput.isEmpty()) {
+      fillQueue();
     }
     
-    private void fillQueue() {
-      logger.debug("Queue for database entries is filling.");
-      String selectStatement = "Select * FROM `" + config.getDataTable() +
-          "` WHERE ComputerName=? AND (lower(FilePath) LIKE ?) ORDER BY DatabaseRowCreationTime DESC LIMIT "
-          + number_of_records_at_a_time + " OFFSET ?";
-        Connection conn = ConnectionStorage.getConnection();
+    return filesToOutput.poll();
+  }
   
-      // For error logging
-      String queryAfterFillingIn = "";
-        try {
-            PreparedStatement stmt = conn.prepareStatement(selectStatement);
-          stmt.setString(1, hostname);
-          stmt.setString(2, "%" + directory + "%");
-          stmt.setInt(3, iteration++ * number_of_records_at_a_time);
-  
-          queryAfterFillingIn = stmt.toString();
-          logger.debug("Fill queue: " + queryAfterFillingIn);
-  
-          ResultSet files = stmt.executeQuery();
-  
-          while (files.next()) {
-            // This can only be done by recent JDBC
-            LocalDateTime rowCreationDate = files.getObject("DatabaseRowCreationTime", LocalDateTime.class);
-            filesToOutput.add(
-                new FileInformation(
-                    files.getString("FilePath"),
-                    files.getString("ComputerName"),
-                    files.getString("FileHash"),
-                    rowCreationDate)
-            );
-          }
-  
-        } catch (SQLException e) {
-          logger.error("Exception occurred trying to fill the queue for files from the database", e);
-          if (!queryAfterFillingIn.equals(""))
-            logger.error("Filled query statement:" + queryAfterFillingIn);
-        }
+  private void fillQueue() {
+    logger.debug("Queue for database entries is filling.");
+    String selectStatement =
+        "Select  file_paths.FilePath as FilePath ,FileHash, " +
+            "DatabaseRowCreationTime, computer_names.ComputerName as ComputerName " +
+            "FROM `directory_records` " +
+            "Inner Join computer_names ON directory_records.ComputerIdNumber = computer_names.ComputerIdNumber " +
+            "Inner Join file_paths ON directory_records.FileNumber = file_paths.FileIdNumber " +
+            "WHERE computer_names.ComputerIdNumber=? " +
+            "AND (lower(FilePath) LIKE ?) " +
+            "ORDER BY DatabaseRowCreationTime DESC " +
+            "LIMIT "
+            + number_of_records_at_a_time + " OFFSET ?";
+    Connection conn = ConnectionStorage.getConnection();
+    
+    // For error logging
+    String queryAfterFillingIn = "";
+    try {
+      PreparedStatement stmt = conn.prepareStatement(selectStatement);
+      stmt.setInt(1, hostnameId);
+      stmt.setString(2, "%" + directory + "%");
+      stmt.setInt(3, iteration++ * number_of_records_at_a_time);
+      
+      queryAfterFillingIn = stmt.toString();
+      logger.debug("Fill queue: " + queryAfterFillingIn);
+      
+      ResultSet files = stmt.executeQuery();
+      
+      while (files.next()) {
+        // This can only be done by recent JDBC
+        LocalDateTime rowCreationDate = files.getObject("DatabaseRowCreationTime", LocalDateTime.class);
+        filesToOutput.add(
+            new FileInformation(
+                files.getString("FilePath"),
+                files.getString("ComputerName"),
+                files.getString("FileHash"),
+                rowCreationDate)
+        );
+      }
+      
+    } catch (SQLException e) {
+      logger.error("Exception occurred trying to fill the queue for files from the database", e);
+      if (!queryAfterFillingIn.equals(""))
+        logger.error("Filled query statement:" + queryAfterFillingIn);
     }
+  }
   
   Integer count() {
     logger.debug("Obtaining number of database records for directory: " + directory);
@@ -116,8 +126,8 @@ class DatabaseLookup {
     Connection conn = ConnectionStorage.getConnection();
     try {
       PreparedStatement stmt = conn.prepareStatement(countStatement);
-      stmt.setString(1, hostname);
-            stmt.setString(2, "%" + directory + "%");
+      stmt.setInt(1, hostnameId);
+      stmt.setString(2, "%" + directory + "%");
       
       logger.debug("Count query: " + stmt.toString());
       
@@ -125,13 +135,13 @@ class DatabaseLookup {
       
       if (!countResult.next()) throw new AssertionError("There is rows in the request for count.");
       return countResult.getInt("total");
-        
-        } catch (SQLException e) {
+      
+    } catch (SQLException e) {
       logger.error("Exception occurred trying to count the queue for files from the database: " + e.toString());
       throw new RuntimeException(e);
     } catch (AssertionError e) {
       logger.error(e);
       throw e;
-        }
     }
+  }
 }

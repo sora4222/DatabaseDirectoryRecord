@@ -1,6 +1,5 @@
 package com.sora4222.file;
 
-import com.sora4222.database.configuration.ComputerProperties;
 import lombok.Getter;
 
 import java.nio.file.Path;
@@ -11,7 +10,6 @@ import java.time.LocalDateTime;
 public class FileInformation {
   public static final FileInformation EmptyFileInformation = new FileInformation(Paths.get(""));
   @Getter private final Path fullLocation;
-  @Getter private final String computerName;
   @Getter private final String fileHash;
   @Getter private final LocalDateTime creationTime;
   
@@ -20,14 +18,12 @@ public class FileInformation {
    * with the rest of the properties passed to it.
    *
    * @param fullLocation the full location that the file is stored at
-   * @param computerName the computer name of the stored file
-   * @param fileHash          the md5 of the file, used to compare files
+   * @param fileHash     the md5 of the file, used to compare files
    */
-  public FileInformation(String fullLocation, String computerName, String fileHash) {
+  public FileInformation(String fullLocation, String fileHash) {
     this.fullLocation = Paths.get(fullLocation).toAbsolutePath();
-    this.computerName = computerName;
     this.fileHash = fileHash;
-    
+  
     this.creationTime = LocalDateTime.now();
   }
   
@@ -40,38 +36,31 @@ public class FileInformation {
    * with the rest of the properties passed to it.
    *
    * @param fullLocation the full location that the file is stored at
-   * @param computerName the computer name of the stored file
    * @param fileHash          the md5 of the file, used to compare files
    */
-  public FileInformation(Path fullLocation, String computerName, String fileHash) {
+  public FileInformation(Path fullLocation, String fileHash) {
     this.fullLocation = fullLocation.toAbsolutePath();
-    this.computerName = computerName;
     this.fileHash = fileHash;
   
     this.creationTime = LocalDateTime.now();
   }
   
   public FileInformation(Path fullLocation) {
-    this(fullLocation, ComputerProperties.computerName.get(), "");
+    this(fullLocation, "");
   }
   
-  public FileInformation(Path fullLocation, String fileHash) {
-    this(fullLocation, ComputerProperties.computerName.get(), fileHash);
-  }
   
   /**
    * Creates a FileInformation object that will be passed in it's datetime. This is intended
    * to be used with the received FileInformation from database objects.
    *
    * @param fullLocation the full location that the file is stored at
-   * @param computerName the computer name of the stored file
    * @param fileHash the hash of the file, used to compare files
    * @param creationTime the time that the file was stored into the database
    */
-  public FileInformation(String fullLocation, String computerName, String fileHash,
+  public FileInformation(String fullLocation, String fileHash,
                          LocalDateTime creationTime) {
     this.fullLocation = Paths.get(fullLocation).toAbsolutePath();
-    this.computerName = computerName;
     this.fileHash = fileHash;
     this.creationTime = creationTime;
   }
@@ -95,8 +84,8 @@ public class FileInformation {
 
   @Override
   public String toString() {
-    return String.format("Path:%s, Computer name: %s, File hash: %s",
-        fullLocation.toString(),  computerName, fileHash);
+    return String.format("Path:%s, File hash: %s",
+        fullLocation.toString(), fileHash);
   }
   
   @Override

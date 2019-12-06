@@ -76,10 +76,11 @@ public class ConnectionStorage {
     /**
      * Obtains a connection to a database, also checking whether the connection is
      * dead or closed and reconnecting if it is.
+     *
      * @return A connection to the database without any wrapper.
      */
-    static Connection getConnection () {
-        int i = 0;
+    public static Connection getConnection() {
+      int i = 0;
       while (checkAndHandleDeadConnection()) {
         backOffConnectionAttempts(i++);
       }
