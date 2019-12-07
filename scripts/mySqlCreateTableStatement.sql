@@ -26,6 +26,6 @@ CREATE TABLE IF NOT EXISTS directory_records
     ComputerIdNumber        int,
     DatabaseRowCreationTime datetime default CURRENT_TIMESTAMP,
     PRIMARY KEY (FileNumber, ComputerIdNumber),
-    FOREIGN KEY (FileNumber) REFERENCES file_paths (FileIdNumber),
-    FOREIGN KEY (ComputerIdNumber) REFERENCES computer_names (ComputerIdNumber)
+    FOREIGN KEY (FileNumber) REFERENCES file_paths (FileId),
+    FOREIGN KEY (ComputerIdNumber) REFERENCES computer_names (ComputerId)
 );

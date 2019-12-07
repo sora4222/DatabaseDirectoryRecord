@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,6 +17,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("WeakerAccess")
 @ExtendWith(MockitoExtension.class)
@@ -47,12 +47,12 @@ public class DatabaseChangeLocatorTest {
   
   @Test
   public void setChangeLocatorListTwoItemAndOneNotStoredInDatabaseReturnsTheFileCommand() {
-    FileInformation notInDatabase = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation inDatabase = new FileInformation("/a/location/anExistingFile.txt", "Hostname", "1B3C8");
-    
+    FileInformation notInDatabase = new FileInformation("/a/location/aFile.txt", "123AF");
+    FileInformation inDatabase = new FileInformation("/a/location/anExistingFile.txt", "1B3C8");
+  
     testFiles.add(notInDatabase);
     testFiles.add(inDatabase);
-    
+  
     expectedFileCommands.add(new FileCommand(notInDatabase, DatabaseCommand.Insert));
   
     when(database.checkForFile(notInDatabase)).thenReturn(new LinkedList<>());
@@ -65,41 +65,28 @@ public class DatabaseChangeLocatorTest {
   
   @Test
   public void aFileHasBeenMovedToADifferentLocationNoChanges() {
-    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation newLocation = new FileInformation("/a/new/aFile.txt", "Hostname", "123AF");
-    
+    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "123AF");
+    FileInformation newLocation = new FileInformation("/a/new/aFile.txt", "123AF");
+  
     when(database.checkForFile(newLocation)).thenReturn(Collections.singletonList(originalFile));
   
     testFiles.add(newLocation);
     databaseChangeLocator.setFilesInDirectories(testFiles);
-    
+  
     assertThat(databaseChangeLocator.findChangesToDirectory(),
         Matchers.containsInAnyOrder(new FileCommand(originalFile, DatabaseCommand.Delete), new FileCommand(newLocation, DatabaseCommand.Insert)));
   }
   
   @Test
-  public void aFileHasBeenMovedToADifferentLocationHostnameIsDifferent() {
-    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation newLocation = new FileInformation("/a/new/aFile.txt", "ANewComputer", "123AF");
-    
-    when(database.checkForFile(newLocation)).thenReturn(Collections.singletonList(originalFile));
-    
-    testFiles.add(newLocation);
-    databaseChangeLocator.setFilesInDirectories(testFiles);
-    
-    Assertions.assertTrue(databaseChangeLocator.findChangesToDirectory().contains(new FileCommand(newLocation, DatabaseCommand.Insert)));
-  }
-  
-  @Test
   public void aFileHasHadItsContentsChanged() {
-    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "Hostname", "123AF");
-    FileInformation newContentsFile = new FileInformation("/a/location/aFile.txt", "Hostname", "546AF");
+    FileInformation originalFile = new FileInformation("/a/location/aFile.txt", "123AF");
+    FileInformation newContentsFile = new FileInformation("/a/location/aFile.txt", "546AF");
   
     when(database.checkForFile(newContentsFile)).thenReturn(Collections.singletonList(originalFile));
   
     testFiles.add(newContentsFile);
     databaseChangeLocator.setFilesInDirectories(testFiles);
-    
+  
     expectedFileCommands.add(new FileCommand(newContentsFile, DatabaseCommand.Update));
   
     Assertions.assertEquals(expectedFileCommands, databaseChangeLocator.findChangesToDirectory());

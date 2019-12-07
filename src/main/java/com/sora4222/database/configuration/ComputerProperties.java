@@ -55,7 +55,7 @@ public class ComputerProperties {
   private static int getComputerId(String computerName) {
     Connection conn = ConnectionStorage.getConnection();
     try {
-      PreparedStatement stmt = conn.prepareStatement("SELECT ComputerIdNumber FROM computer_names WHERE ComputerName=?");
+      PreparedStatement stmt = conn.prepareStatement("SELECT ComputerId FROM computer_names WHERE ComputerName=?");
       stmt.setString(1, computerName);
       ResultSet computerId = stmt.executeQuery();
       if (computerId.next()) {

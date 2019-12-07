@@ -1,8 +1,6 @@
 package com.sora4222.database.connectors;
 
 import com.sora4222.database.configuration.ComputerProperties;
-import com.sora4222.database.configuration.Config;
-import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,10 +13,10 @@ import java.util.List;
 @SuppressWarnings("SqlResolve")
 public class Updater {
   private static Logger logger = LogManager.getLogger();
-  private static final Config config = ConfigurationManager.getConfiguration();
   private static String updateCommand =
       "UPDATE `directory_records` SET FileHash=? " +
-          "WHERE FilePath=? AND ComputerIdNumber=?";
+          "WHERE FileId IN (SELECT FileId FROM file_paths WHERE FilePath = ?) " +
+          "AND ComputerId=?";
   
   public static void sendUpdatesToDatabase (final List<FileInformation> filesInDBToUpdate) {
     if(filesInDBToUpdate.size() == 0)

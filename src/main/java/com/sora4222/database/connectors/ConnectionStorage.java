@@ -16,19 +16,19 @@ public class ConnectionStorage {
     private static Logger logger = LogManager.getLogger();
 
     static {
-        logger.info("Establishing connection to MySQL database.");
-        while (true) {
-            int i = 0;
-            try {
-                if(i++ != 0)
-                  backOffConnectionAttempts(i);
-                initialize();
-                break;
-            } catch (SQLException e) {
-                logger.error(String.format("The MySQL database cannot be connected to URI: %s\nError: %s",
-                    config.getJdbcConnectionUrl(), e.getMessage()));
-            } catch (NoSuchFieldException e) {
-                logger.error(
+      logger.info("Establishing connection to MySQL database.");
+      int numberOfAttempts = 0;
+      while (true) {
+        try {
+          if (numberOfAttempts++ != 0)
+            backOffConnectionAttempts(numberOfAttempts);
+          initialize();
+          break;
+        } catch (SQLException e) {
+          logger.error(String.format("The MySQL database cannot be connected to URI: %s\nError: %s",
+              config.getJdbcConnectionUrl(), e.getMessage()));
+        } catch (NoSuchFieldException e) {
+          logger.error(
                     String.format("A required field is missing for this application to start %s", e.getMessage()), e);
                 throw new RuntimeException(e);
             }

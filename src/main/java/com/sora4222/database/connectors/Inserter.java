@@ -1,8 +1,6 @@
 package com.sora4222.database.connectors;
 
 import com.sora4222.database.configuration.ComputerProperties;
-import com.sora4222.database.configuration.Config;
-import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,12 +12,13 @@ import java.util.List;
 
 public class Inserter {
   private static Logger logger = LogManager.getLogger();
-  private static Config config = ConfigurationManager.getConfiguration();
   @SuppressWarnings("SqlResolve")
-  private static final String insertFileSql = "INSERT INTO `file_paths` (FilePath) SELECT ? WHERE (SELECT FilePath FROM  `file_paths` WHERE FilePath = ?) = 0";
+  private static final String insertFileSql = "INSERT INTO `file_paths` (FilePath) " +
+      "SELECT ? " +  // This select defines the FilePath to be inserted
+      "WHERE (SELECT COUNT(FilePath) FROM  `file_paths` WHERE FilePath = ?) = 0";
   private static final String insertionRecordSql =
-      "INSERT INTO `directory_records` (ComputerIdNumber, FileNumber, FileHash) " +
-          "VALUES (?, (SELECT FileIdNumber FROM file_paths WHERE FilePath = ?), ?)";
+      "INSERT INTO `directory_records` (ComputerId, FileId, FileHash) " +
+          "VALUES (?, (SELECT FileId FROM file_paths WHERE FilePath = ?), ?)";
   
   /**
    * Inserts a list of files into the directory database.

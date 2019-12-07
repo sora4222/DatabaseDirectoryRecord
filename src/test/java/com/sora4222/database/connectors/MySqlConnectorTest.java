@@ -37,7 +37,7 @@ public class MySqlConnectorTest {
             Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash/"));
     
         connector = UtilityForConnector.getOrInitializeConnection();
-        connector.prepareStatement("DELETE FROM directory_records_test").executeUpdate();
+        connector.prepareStatement("DELETE FROM `directory_records`").executeUpdate();
         
         testFiles = new LinkedList<>();
         createNewFakeFile();
@@ -86,11 +86,11 @@ public class MySqlConnectorTest {
     
     private List<FileInformation> assertNumberItemsEqual (final int expected) throws SQLException {
         connector = ConnectionStorage.getConnection();
-        ResultSet found = connector.prepareStatement("SELECT * FROM directory_records_test").executeQuery();
+        ResultSet found = connector.prepareStatement("SELECT * FROM `directory_records`").executeQuery();
         int i = 0;
         List<FileInformation> files = new LinkedList<>();
         while (found.next()) {
-            files.add(new FileInformation(found.getString("FilePath"), ComputerProperties.computerName.get(), found.getString("FileHash")));
+            files.add(new FileInformation(found.getString("FilePath"), found.getString("FileHash")));
             i++;
         }
         Assertions.assertEquals(expected, i, found.toString());
@@ -100,31 +100,31 @@ public class MySqlConnectorTest {
     @Test
     public void TestSelectAllFilesQuery() throws SQLException {
         connector
-          .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file.txt', '1234asdf')")
+            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file.txt', '1234asdf')")
             .executeUpdate();
         Assertions.assertEquals(1,
-          DatabaseQuery
-              .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+            DatabaseQuery
+                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "1234asdf")))
             .size());
     
         connector = ConnectionStorage.getConnection();
         connector
-            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file2.txt', '123asdf')")
+            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file2.txt', '123asdf')")
             .executeUpdate();
         
         Assertions.assertEquals(1,
             DatabaseQuery
-                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "1234asdf")))
                 .size());
         
         connector = ConnectionStorage.getConnection();
         connector
-            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES ('moreFakeComputer', '/dir/file2.txt', '123asdf')")
+            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES ('moreFakeComputer', '/dir/file2.txt', '123asdf')")
             .executeUpdate();
     
         Assertions.assertEquals(1,
             DatabaseQuery
-                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "fakeComputer", "1234asdf")))
+                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "1234asdf")))
                 .size());
     }
     
@@ -153,7 +153,7 @@ public class MySqlConnectorTest {
         
         // Insert something that exists
         PreparedStatement statement = connector
-            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES (?, ?, '123asdf')");
+            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES (?, ?, '123asdf')");
         statement.setString(1, ComputerProperties.computerName.get());
         statement.setString(2, rootOneDirectory.resolve("sharedFile1.txt").toAbsolutePath().toString().replace("\\", "/"));
         statement.executeUpdate();
@@ -161,7 +161,7 @@ public class MySqlConnectorTest {
         Path rootTwoDirectory = Paths.get("src/test/resources/root2/");
         // Insert something that is in a different directory
         statement = connector
-            .prepareStatement("INSERT INTO directory_records_test (ComputerName, FilePath, FileHash) VALUES (?, ?, '125asdf')");
+            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES (?, ?, '125asdf')");
         statement.setString(1, ComputerProperties.computerName.get());
         statement.setString(2, rootTwoDirectory.resolve("sharedFile2.txt").toAbsolutePath().toString().replace("\\", "/"));
         statement.executeUpdate();

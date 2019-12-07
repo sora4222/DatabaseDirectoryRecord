@@ -78,9 +78,9 @@ class DatabaseLookup {
         "Select  file_paths.FilePath as FilePath ,FileHash, " +
             "DatabaseRowCreationTime, computer_names.ComputerName as ComputerName " +
             "FROM `directory_records` " +
-            "Inner Join computer_names ON directory_records.ComputerIdNumber = computer_names.ComputerIdNumber " +
-            "Inner Join file_paths ON directory_records.FileNumber = file_paths.FileIdNumber " +
-            "WHERE computer_names.ComputerIdNumber=? " +
+            "Inner Join computer_names ON directory_records.ComputerId = computer_names.ComputerId " +
+            "Inner Join file_paths ON directory_records.FileId = file_paths.FileId " +
+            "WHERE computer_names.ComputerId=? " +
             "AND (lower(FilePath) LIKE ?) " +
             "ORDER BY DatabaseRowCreationTime DESC " +
             "LIMIT "
@@ -106,7 +106,6 @@ class DatabaseLookup {
         filesToOutput.add(
             new FileInformation(
                 files.getString("FilePath"),
-                files.getString("ComputerName"),
                 files.getString("FileHash"),
                 rowCreationDate)
         );
