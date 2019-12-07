@@ -16,7 +16,7 @@ public class Inserter {
   private static Logger logger = LogManager.getLogger();
   private static Config config = ConfigurationManager.getConfiguration();
   @SuppressWarnings("SqlResolve")
-  private static final String insertFileSql = "INSERT INTO `file_paths` (FilePath) VALUES (?)";
+  private static final String insertFileSql = "INSERT INTO `file_paths` (FilePath) SELECT ? WHERE (SELECT FilePath FROM  `file_paths` WHERE FilePath = ?) = 0";
   private static final String insertionRecordSql =
       "INSERT INTO `directory_records` (ComputerIdNumber, FileNumber, FileHash) " +
           "VALUES (?, (SELECT FileIdNumber FROM file_paths WHERE FilePath = ?), ?)";
@@ -29,8 +29,6 @@ public class Inserter {
       return;
     
     insertFilesToFileTable(filesToInsert);
-    
-    
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
       databaseConnection.setAutoCommit(false);
@@ -69,7 +67,7 @@ public class Inserter {
       
       for (FileInformation file : filesToInsert) {
         insertionSql.setString(1, file.getFullLocationAsLinuxBasedString());
-        
+        insertionSql.setString(2, file.getFullLocationAsLinuxBasedString());
         insertionSql.addBatch();
       }
       logger.debug("SQL statement for insertion: " + insertionSql.toString());
