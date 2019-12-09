@@ -62,12 +62,6 @@ public class ConfigurationManager {
       logger.debug("Database JDBC connection url is being set to  " + System.getProperty("jdbcConnectionUrl"));
       heldConfig.setJdbcConnectionUrl(System.getProperty("jdbcConnectionUrl"));
     }
-    
-    if (heldConfig.getDataTable().isEmpty()) {
-      logger.debug("Database table is being set to  " + System.getProperty("dataTable"));
-      heldConfig.setDataTable(System.getProperty("dataTable"));
-    }
-    
   }
   
   private static void fillEmptyFieldsWithHomeFile() throws IOException {
@@ -76,7 +70,6 @@ public class ConfigurationManager {
       ObjectMapper jsonToObject = new ObjectMapper();
       Config tempConfig = jsonToObject.readValue(homeFileLocation, Config.class);
       
-      if (heldConfig.getDataTable().isEmpty()) heldConfig.setDataTable(tempConfig.dataTable);
       if (heldConfig.getDatabasePassword().isEmpty()) heldConfig.setDatabasePassword(tempConfig.databasePassword);
       if (heldConfig.getDatabaseUsername().isEmpty()) heldConfig.setDatabaseUsername(tempConfig.databaseUsername);
       if (heldConfig.getJdbcConnectionUrl().isEmpty()) heldConfig.setJdbcConnectionUrl(tempConfig.jdbcConnectionUrl);

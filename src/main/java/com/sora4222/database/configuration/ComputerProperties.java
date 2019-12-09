@@ -38,10 +38,12 @@ public class ComputerProperties {
   private static void createComputerId(String computerName) {
     Connection conn = ConnectionStorage.getConnection();
     try {
-      PreparedStatement stmt = conn.prepareStatement("INSERT INTO computer_names (ComputerName) VALUES ?");
+      PreparedStatement stmt = conn.prepareStatement("INSERT INTO computer_names (ComputerName) VALUES (?)");
       stmt.setString(1, computerName);
+      stmt.execute();
     } catch (SQLException e) {
       logger.error(e);
+      throw new RuntimeException(e);
     }
   }
   
@@ -58,8 +60,9 @@ public class ComputerProperties {
       PreparedStatement stmt = conn.prepareStatement("SELECT ComputerId FROM computer_names WHERE ComputerName=?");
       stmt.setString(1, computerName);
       ResultSet computerId = stmt.executeQuery();
+  
       if (computerId.next()) {
-        return computerId.getInt("ComputerIdNumber");
+        return computerId.getInt("ComputerId");
       }
       
     } catch (SQLException e) {
