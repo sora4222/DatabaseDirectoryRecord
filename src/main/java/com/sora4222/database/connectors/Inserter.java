@@ -13,11 +13,11 @@ import java.util.List;
 public class Inserter {
   private static Logger logger = LogManager.getLogger();
   @SuppressWarnings("SqlResolve")
-  private static final String insertFileSql = "INSERT INTO `file_paths` (FilePath) " +
+  private static final String insertFileSql = "INSERT IGNORE INTO `file_paths` (FilePath) " +
       "SELECT ? " +  // This select defines the FilePath to be inserted
       "WHERE (SELECT COUNT(FilePath) FROM  `file_paths` WHERE FilePath = ?) = 0";
   private static final String insertionRecordSql =
-      "INSERT INTO `directory_records` (ComputerId, FileId, FileHash) " +
+      "INSERT IGNORE INTO `directory_records` (ComputerId, FileId, FileHash) " +
           "VALUES (?, (SELECT FileId FROM file_paths WHERE FilePath = ?), ?)";
   
   /**
