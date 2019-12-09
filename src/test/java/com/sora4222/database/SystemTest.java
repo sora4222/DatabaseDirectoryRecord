@@ -1,5 +1,6 @@
 package com.sora4222.database;
 
+import com.sora4222.database.configuration.ComputerProperties;
 import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.configuration.UtilityForConfig;
 import com.sora4222.database.connectors.UtilityForConnector;
@@ -21,7 +22,6 @@ import java.util.UUID;
 
 public class SystemTest {
   private static final String LOCATION_OF_ROOT_ONE_ROOT_TWO = "src/test/resources/root1AndRoot2.json";
-  private static String dataTable = ConfigurationManager.getConfiguration().getDataTable();
   
   Connection connection;
   File temporaryFile = new File("");
@@ -40,9 +40,10 @@ public class SystemTest {
   public void setupDatabase() throws SQLException {
     System.clearProperty("config");
     UtilityForConfig.clearConfig();
-    
+  
     connection = UtilityForConnector.getOrInitializeConnection();
-    connection.prepareStatement("DELETE FROM " + dataTable).executeUpdate();
+    connection.prepareStatement("DELETE FROM directory_records").executeUpdate();
+    connection.prepareStatement("DELETE FROM file_paths").executeUpdate();
   }
   
   @AfterEach
@@ -59,7 +60,10 @@ public class SystemTest {
   private ResultSet getDatabaseContents() throws SQLException {
     connection = UtilityForConnector.getOrInitializeConnection();
     Statement stmt = connection.createStatement();
-    return stmt.executeQuery("SELECT * FROM " + dataTable);
+    return stmt.executeQuery("SELECT directory_records.FileId as FileId, FileHash, ComputerId, DatabaseRowCreationTime, file_paths.FilePath as FilePath " +
+        "FROM `directory_records` " +
+        "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId " +
+        "WHERE ComputerId = " + ComputerProperties.computerNameId.get().toString());
   }
   
   @Test

@@ -16,161 +16,187 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MySqlConnectorTest {
-
-    Connection connector;
-    String name;
-    Path location;
-    String fileHash;
-    String computerName;
-
-    List<FileInformation> testFiles = new LinkedList<>();
+  
+  Connection connector;
+  Path location = Paths.get("");
+  String fileHash;
+  
+  List<FileInformation> testFiles = new LinkedList<>();
+  
+  @BeforeAll
+  public static void clearConfiguration() {
+    UtilityForConfig.clearConfig();
+    System.clearProperty("config");
+  }
+  
+  @BeforeEach
+  public void setup() throws SQLException {
+    ConfigurationManager.getConfiguration().setRootLocations(
+        Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash/"));
     
-    @BeforeAll
-    public static void clearConfiguration() {
-        UtilityForConfig.clearConfig();
-        System.clearProperty("config");
-    }
+    connector = UtilityForConnector.getOrInitializeConnection();
+    connector.prepareStatement("DELETE FROM `directory_records`").executeUpdate();
     
-    @BeforeEach
-    public void setup () throws SQLException {
-        ConfigurationManager.getConfiguration().setRootLocations(
-            Arrays.asList("/location/1", "/location/that/I/endWith/forwardSlash/"));
+    fileHash = UUID.randomUUID().toString();
+    testFiles = new LinkedList<>();
+  }
+  
+  @AfterEach
+  public void teardownConnector() {
+    ConnectionStorage.close();
+  }
+  
+  private List<FileInformation> assertNumberItemsEqual(final int expected) throws SQLException {
+    connector = ConnectionStorage.getConnection();
+    ResultSet found = connector.prepareStatement(
+        "SELECT file_paths.FilePath as filePath, directory_records.FileHash as fileHash " +
+            "FROM `directory_records` " +
+            "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId").executeQuery();
+    int i = 0;
+    List<FileInformation> files = new LinkedList<>();
+    while (found.next()) {
+      files.add(new FileInformation(found.getString("filePath"), found.getString("fileHash")));
+      i++;
+    }
+    Assertions.assertEquals(expected, i, found.toString());
+    return files;
+  }
+  
+  @Test
+  public void InsertInformation() throws SQLException {
+    testFiles.add(new FileInformation(Paths.get("fakeFile." + UUID.randomUUID().toString()), fileHash));
+    Inserter.insertRecordIntoDatabase(testFiles);
     
-        connector = UtilityForConnector.getOrInitializeConnection();
-        connector.prepareStatement("DELETE FROM `directory_records`").executeUpdate();
-        
-        testFiles = new LinkedList<>();
-        createNewFakeFile();
-    }
-
-
-    public void createNewFakeFile () {
-        name = UUID.randomUUID().toString() + ".txt";
-        location = Paths.get(name);
-        fileHash = UUID.randomUUID().toString();
-        computerName = UUID.randomUUID().toString();
-    }
-
-    @AfterEach
-    public void teardownConnector () {
-        ConnectionStorage.close();
-    }
-
-    @Test
-    public void InsertInformation () throws SQLException {
-        testFiles.add(new FileInformation(location, fileHash));
-        Inserter.insertRecordIntoDatabase(testFiles);
-        
-        Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
-    }
-
-    @Test
-    public void InsertAndSelect () throws SQLException {
-        FileInformation file = new FileInformation(location, fileHash);
-        testFiles.add(file);
-        Inserter.insertRecordIntoDatabase(testFiles);
-        
-        Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
-    }
-
-    @Test
-    public void InsertThenDelete () throws SQLException {
-        FileInformation fileToInsertAndDelete = new FileInformation(location, fileHash);
-        testFiles.add(fileToInsertAndDelete);
-        Inserter.insertRecordIntoDatabase(testFiles);
-        
-        Deleter.sendDeletesToDatabase(testFiles);
-        int expected = 0;
-        assertNumberItemsEqual(expected);
-    }
+    Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
+  }
+  
+  @Test
+  public void InsertAndSelect() throws SQLException {
+    FileInformation file = new FileInformation(location, fileHash);
+    testFiles.add(file);
+    Inserter.insertRecordIntoDatabase(testFiles);
     
-    private List<FileInformation> assertNumberItemsEqual (final int expected) throws SQLException {
-        connector = ConnectionStorage.getConnection();
-        ResultSet found = connector.prepareStatement("SELECT * FROM `directory_records`").executeQuery();
-        int i = 0;
-        List<FileInformation> files = new LinkedList<>();
-        while (found.next()) {
-            files.add(new FileInformation(found.getString("FilePath"), found.getString("FileHash")));
-            i++;
-        }
-        Assertions.assertEquals(expected, i, found.toString());
-        return files;
-    }
+    Assertions.assertEquals(testFiles, assertNumberItemsEqual(1));
+  }
+  
+  @Test
+  public void InsertThenDelete() throws SQLException {
+    FileInformation fileToInsertAndDelete = new FileInformation(location, fileHash);
+    testFiles.add(fileToInsertAndDelete);
+    Inserter.insertRecordIntoDatabase(testFiles);
     
-    @Test
-    public void TestSelectAllFilesQuery() throws SQLException {
-        connector
-            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file.txt', '1234asdf')")
-            .executeUpdate();
-        Assertions.assertEquals(1,
-            DatabaseQuery
-                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "1234asdf")))
+    Deleter.sendDeletesToDatabase(testFiles);
+    int expected = 0;
+    assertNumberItemsEqual(expected);
+  }
+  
+  private int InsertFileReturnId(String fileName) throws SQLException {
+    connector = ConnectionStorage.getConnection();
+    PreparedStatement stmt = connector.prepareStatement("INSERT INTO file_paths (FilePath) VALUES (?)");
+    stmt.setString(1, fileName);
+    stmt.execute();
+    
+    stmt = connector.prepareStatement("SELECT FileId FROM file_paths WHERE FilePath = ?");
+    stmt.setString(1, fileName);
+    ResultSet set = stmt.executeQuery();
+    
+    set.next();
+    return set.getInt("FileId");
+  }
+  
+  @Test
+  public void TestSelectAllFilesQuery() throws SQLException {
+    // Insert a single file, give it a list of files as though they were on this computer. Expect just a single out.
+    String fileName1 = "/dir/test_file." + UUID.randomUUID().toString();
+    insertFileWithComputerAndPath(fileName1, "1234asdf");
+    Assertions.assertEquals(1,
+        DatabaseQuery
+            .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation(fileName1, "1234asdf")))
             .size());
     
-        connector = ConnectionStorage.getConnection();
-        connector
-            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES ('fakeComputer', '/dir/file2.txt', '123asdf')")
-            .executeUpdate();
-        
-        Assertions.assertEquals(1,
-            DatabaseQuery
-                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "1234asdf")))
-                .size());
-        
-        connector = ConnectionStorage.getConnection();
-        connector
-            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES ('moreFakeComputer', '/dir/file2.txt', '123asdf')")
-            .executeUpdate();
+    String fileName2 = "/dir/test_file_2." + UUID.randomUUID().toString();
+    insertFileWithComputerAndPath(fileName2, "5678asdf");
     
-        Assertions.assertEquals(1,
-            DatabaseQuery
-                .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation("/dir/file.txt", "1234asdf")))
-                .size());
-    }
+    Assertions.assertEquals(1,
+        DatabaseQuery
+            .allFilesAlreadyInBothComputerAndDatabase(
+                Collections.singletonList(new FileInformation(fileName2, "5678asdf"))).size());
     
-    @Test
-    void allQueriesAcceptEmptyList() {
-        Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesAlreadyInBothComputerAndDatabase(Collections.emptyList()));
-        Inserter.insertRecordIntoDatabase(Collections.emptyList());
-        Updater.sendUpdatesToDatabase(Collections.emptyList());
-        Deleter.sendDeletesToDatabase(Collections.emptyList());
-    }
+    List<FileInformation> bothFiles = new ArrayList<>();
+    bothFiles.add(new FileInformation(fileName2, "5678asdf"));
+    bothFiles.add(new FileInformation(fileName1, "1234asdf"));
+    Assertions.assertEquals(2,
+        DatabaseQuery
+            .allFilesAlreadyInBothComputerAndDatabase(bothFiles).size());
+  }
+  
+  private void insertFileWithComputerAndPath(String fileName, String hash) throws SQLException {
+    int fileId1 = InsertFileReturnId(fileName);
     
-    @Test
-    void testDatabaseEntriesReturnsNothingWhenTheFilesAreNotInDatabase() {
-        Path rootOneDirectory = Paths.get("src/test/resources/root1/");
-        DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
-        Assertions.assertEquals(0, entries.databaseRecordCount());
-        
-        List<FileInformation> stream = entries.getComputersFilesFromDatabase()
-            .limit(entries.databaseRecordCount()).collect(Collectors.toList());
-        Assertions.assertTrue(stream.isEmpty());
-    }
+    // Insert a single file with random name
+    PreparedStatement stmt1;
+    stmt1 = connector
+        .prepareStatement(
+            "INSERT INTO `directory_records` (ComputerId, FileId, FileHash) " +
+                "VALUES (?, ?, ?)");
+    stmt1.setInt(1, ComputerProperties.computerNameId.get());
+    stmt1.setInt(2, fileId1);
+    stmt1.setString(3, hash);
+    stmt1.executeUpdate();
+  }
+  
+  @Test
+  void allQueriesAcceptEmptyList() {
+    Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesAlreadyInBothComputerAndDatabase(Collections.emptyList()));
+    Inserter.insertRecordIntoDatabase(Collections.emptyList());
+    Updater.sendUpdatesToDatabase(Collections.emptyList());
+    Deleter.sendDeletesToDatabase(Collections.emptyList());
+  }
+  
+  @Test
+  void testDatabaseEntriesReturnsNothingWhenTheFilesAreNotInDatabase() {
+    Path rootOneDirectory = Paths.get("src/test/resources/root1/");
+    DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
+    Assertions.assertEquals(0, entries.databaseRecordCount());
     
-    @Test
-    void testDataBaseEntriesWillReturnARowWithTheSrcRootInItButNoOtherRow() throws SQLException {
-        Path rootOneDirectory = Paths.get("src/test/resources/root1/");
-        
-        // Insert something that exists
-        PreparedStatement statement = connector
-            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES (?, ?, '123asdf')");
-        statement.setString(1, ComputerProperties.computerName.get());
-        statement.setString(2, rootOneDirectory.resolve("sharedFile1.txt").toAbsolutePath().toString().replace("\\", "/"));
-        statement.executeUpdate();
-        
-        Path rootTwoDirectory = Paths.get("src/test/resources/root2/");
-        // Insert something that is in a different directory
-        statement = connector
-            .prepareStatement("INSERT INTO `directory_records` (ComputerName, FilePath, FileHash) VALUES (?, ?, '125asdf')");
-        statement.setString(1, ComputerProperties.computerName.get());
-        statement.setString(2, rootTwoDirectory.resolve("sharedFile2.txt").toAbsolutePath().toString().replace("\\", "/"));
-        statement.executeUpdate();
-        
-        DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
-        Assertions.assertEquals(1, entries.databaseRecordCount());
-        
-        List<FileInformation> stream = entries.getComputersFilesFromDatabase()
-            .limit(entries.databaseRecordCount()).collect(Collectors.toList());
-        Assertions.assertEquals(1, stream.size());
-    }
+    List<FileInformation> stream = entries
+        .getComputersFilesFromDatabase()
+        .limit(entries.databaseRecordCount())
+        .collect(Collectors.toList());
+    Assertions.assertTrue(stream.isEmpty());
+  }
+
+//  @Test
+//  void testDataBaseEntriesWillReturnARowWithTheSrcRootInItButNoOtherRow() throws SQLException {
+//    Path rootOneDirectory = Paths.get("src/test/resources/root1/");
+//    insertFileWithComputerAndPath(rootOneDirectory.resolve("sharedFile1.txt")
+//        .toAbsolutePath()
+//        .toString()
+//        .replace("\\", "/"), "md5");
+//    // Insert something that exists
+//        rootOneDirectory.resolve("sharedFile1.txt")
+//            .toAbsolutePath()
+//            .toString()
+//            .replace("\\", "/"));
+//    Path rootTwoDirectory = Paths.get("src/test/resources/root2/");
+//    // Insert something that is in a different directory
+//    statement = connector
+//        .prepareStatement(
+//            "INSERT INTO `directory_records` (ComputerId, FilePath, FileHash) " +
+//                "VALUES (?, (SELECT FileId FROM file_paths WHERE FilePath=?), '125asdf')");
+//    statement.setInt(1, ComputerProperties.computerNameId.get());
+//    statement.setString(2,
+//        rootTwoDirectory.resolve("sharedFile2.txt")
+//            .toAbsolutePath()
+//            .toString()
+//            .replace("\\", "/"));
+//    statement.executeUpdate();
+//
+//    DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
+//    Assertions.assertEquals(1, entries.databaseRecordCount());
+//
+//    List<FileInformation> stream = entries.getComputersFilesFromDatabase()
+//        .limit(entries.databaseRecordCount()).collect(Collectors.toList());
+//    Assertions.assertEquals(1, stream.size());
+//  }
 }

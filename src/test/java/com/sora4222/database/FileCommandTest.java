@@ -9,23 +9,23 @@ class FileCommandTest {
   
   @Test
   public void initialization() {
-    FileInformation info = new FileInformation("/a/name.txt", "host", "a12fe");
+    FileInformation info = new FileInformation("/a/name.txt", "a12fe");
     FileCommand fileCommand = new FileCommand(info, DatabaseCommand.Insert);
   }
   
   @Test
   public void testEquals() {
-    FileInformation info1 = new FileInformation("/a/name.txt", "host", "a12fe");
-    FileInformation info2 = new FileInformation("/a/name.txt", "host", "a12fe");
+    FileInformation info1 = new FileInformation("/a/name.txt", "a12fe");
+    FileInformation info2 = new FileInformation("/a/name.txt", "a12fe");
     FileCommand fileCommand1 = new FileCommand(info1, DatabaseCommand.Insert);
     FileCommand fileCommand2 = new FileCommand(info2, DatabaseCommand.Insert);
     Assertions.assertEquals(fileCommand1, fileCommand2);
-
+  
     fileCommand2.command = DatabaseCommand.Update;
     Assertions.assertNotEquals(fileCommand1, fileCommand2);
-    FileInformation info3 = new FileInformation("/a/name.txt", "host", "bc19e");
+    FileInformation info3 = new FileInformation("/a/name.txt", "bc19e");
     FileCommand fileCommand3 = new FileCommand(info3, DatabaseCommand.Update);
-    
+  
     Assertions.assertNotEquals(fileCommand2, fileCommand3);
     
     Assertions.assertNotEquals(fileCommand1, "name.txt");
