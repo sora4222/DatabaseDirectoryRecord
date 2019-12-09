@@ -143,9 +143,21 @@ public class DirectoryRecorder {
       if (!Boolean.getBoolean("skipUpdateAndDelete")) {
         logger.info("Initial update and delete processing");
         List<FileCommand> updates = findUpdatesToDatabase(confDirPath);
-        Updater.sendUpdatesToDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Update)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
-        Deleter.sendDeletesToDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Delete)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
-        Inserter.insertRecordIntoDatabase(updates.parallelStream().filter(command -> command.getCommand().equals(DatabaseCommand.Insert)).map(fileCommand -> fileCommand.getInformation()).collect(Collectors.toList()));
+        Updater.sendUpdatesToDatabase(
+            updates.parallelStream()
+                .filter(command -> command.getCommand().equals(DatabaseCommand.Update))
+                .map(fileCommand -> fileCommand.getInformation())
+                .collect(Collectors.toList()));
+        Deleter.sendDeletesToDatabase(
+            updates.parallelStream()
+                .filter(command -> command.getCommand().equals(DatabaseCommand.Delete))
+                .map(fileCommand -> fileCommand.getInformation())
+                .collect(Collectors.toList()));
+        Inserter.insertRecordIntoDatabase(
+            updates.parallelStream()
+                .filter(command -> command.getCommand().equals(DatabaseCommand.Insert))
+                .map(fileCommand -> fileCommand.getInformation())
+                .collect(Collectors.toList()));
       }
     }
   }

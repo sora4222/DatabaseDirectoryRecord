@@ -17,14 +17,17 @@ import java.util.List;
 public class DatabaseQuery {
   private static final Logger logger = LogManager.getLogger();
   private static final String allComputerFileCheck =
-      "SELECT FileId, FileHash FROM `directory_records` WHERE ComputerId IN (SELECT ComputerId FROM computer_names WHERE ComputerName=?)";
+      "SELECT FilePath, FileHash FROM `directory_records` " +
+          "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId " +
+          "WHERE ComputerId IN (SELECT ComputerId FROM computer_names WHERE ComputerName=?)";
   
-  public static Collection<FileInformation> allFilesAlreadyInBothComputerAndDatabase(List<FileInformation> filesInHardDrive) {
+  public static Collection<FileInformation> allFilesAlreadyInBothComputerAndDatabase(
+      List<FileInformation> filesInHardDrive) {
     Connection connection = ConnectionStorage.getConnection();
     try {
       PreparedStatement checkEachFileIsThere = connection.prepareStatement(allComputerFileCheck);
       checkEachFileIsThere.setInt(1, ComputerProperties.computerNameId.get());
-  
+      
       logger.info("Select statement: " + checkEachFileIsThere.toString());
       ResultSet resultSet = checkEachFileIsThere.executeQuery();
       
@@ -38,7 +41,9 @@ public class DatabaseQuery {
       logger.debug("Returning: " + hardDriveFiles.toString());
       return new LinkedList<>(hardDriveFiles);
     } catch (SQLException e) {
-      logger.error("Checking for a batch of files in the database, query template: " + allComputerFileCheck, e);
+      logger.error(
+          "Checking for a batch of files in the database, query template: " + allComputerFileCheck,
+          e);
     } finally {
       ConnectionStorage.close();
     }

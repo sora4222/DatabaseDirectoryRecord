@@ -1,8 +1,6 @@
 package com.sora4222.database.connectors;
 
 import com.sora4222.database.configuration.ComputerProperties;
-import com.sora4222.database.configuration.Config;
-import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +45,6 @@ public class DatabaseEntries {
 
 class DatabaseLookup {
   private static final Logger logger = LogManager.getLogger();
-  private static final Config config = ConfigurationManager.getConfiguration();
   private static final int hostnameId;
   private static final int number_of_records_at_a_time = 100000;
   private static final Queue<FileInformation> filesToOutput = new LinkedList<>();
@@ -120,16 +117,18 @@ class DatabaseLookup {
   
   Integer count() {
     logger.debug("Obtaining number of database records for directory: " + directory);
-    String countStatement = "Select COUNT(*) AS total FROM `" + config.getDataTable() +
-        "` WHERE ComputerName=? AND (FilePath LIKE ?)";
+    String countStatement = "Select COUNT(*) AS total " +
+        "FROM `directory_records` " +
+        "WHERE ComputerId = (SELECT ComputerId FROM computer_names where ComputerName = ?) " +
+        "AND FileId in (SELECT FileId FROM file_paths WHERE FilePath LIKE ?)";
     Connection conn = ConnectionStorage.getConnection();
     try {
       PreparedStatement stmt = conn.prepareStatement(countStatement);
       stmt.setInt(1, hostnameId);
       stmt.setString(2, "%" + directory + "%");
-      
+    
       logger.debug("Count query: " + stmt.toString());
-      
+    
       ResultSet countResult = stmt.executeQuery();
       
       if (!countResult.next()) throw new AssertionError("There is rows in the request for count.");
