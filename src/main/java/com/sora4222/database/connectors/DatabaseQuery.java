@@ -1,8 +1,6 @@
 package com.sora4222.database.connectors;
 
 import com.sora4222.database.configuration.ComputerProperties;
-import com.sora4222.database.configuration.Config;
-import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,19 +15,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class DatabaseQuery {
-  private static final Config config = ConfigurationManager.getConfiguration();
   private static final Logger logger = LogManager.getLogger();
-  private static final String singleFileCheckQuery =
-    "SELECT * FROM `" + config.getDataTable() + "` WHERE ComputerName=? AND FilePath=?";
   private static final String allComputerFileCheck =
-    "SELECT FilePath, FileHash FROM `" + config.getDataTable() + "` WHERE ComputerName=?";
+      "SELECT FilePath, FileHash FROM `directory_records` " +
+          "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId " +
+          "WHERE ComputerId IN (SELECT ComputerId FROM computer_names WHERE ComputerName=?)";
   
-  public static Collection<FileInformation> allFilesAlreadyInBothComputerAndDatabase(List<FileInformation> filesInHardDrive) {
+  public static Collection<FileInformation> allFilesAlreadyInBothComputerAndDatabase(
+      List<FileInformation> filesInHardDrive) {
     Connection connection = ConnectionStorage.getConnection();
     try {
       PreparedStatement checkEachFileIsThere = connection.prepareStatement(allComputerFileCheck);
-      checkEachFileIsThere.setString(1, ComputerProperties.computerName.get());
-  
+      checkEachFileIsThere.setInt(1, ComputerProperties.computerNameId.get());
+      
       logger.info("Select statement: " + checkEachFileIsThere.toString());
       ResultSet resultSet = checkEachFileIsThere.executeQuery();
       
@@ -38,13 +36,14 @@ public class DatabaseQuery {
         hardDriveFiles.remove(
           new FileInformation(
             resultSet.getString("FilePath"),
-            ComputerProperties.computerName.get(),
             resultSet.getString("FileHash")));
       }
       logger.debug("Returning: " + hardDriveFiles.toString());
       return new LinkedList<>(hardDriveFiles);
     } catch (SQLException e) {
-      logger.error("Checking for a batch of files in the database, query template: " + allComputerFileCheck, e);
+      logger.error(
+          "Checking for a batch of files in the database, query template: " + allComputerFileCheck,
+          e);
     } finally {
       ConnectionStorage.close();
     }
