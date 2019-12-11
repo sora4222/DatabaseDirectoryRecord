@@ -1,6 +1,5 @@
 package com.sora4222.file;
 
-import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
@@ -58,7 +57,6 @@ public class FileHasher {
   
   /**
    * Gets a cryptographic hash of a file that can be used to compare files.
-   *
    * @return A cryptographic hash of the file for comparison use.
    */
   public String hashFile() {
@@ -71,7 +69,7 @@ public class FileHasher {
       logger.error("A filestream for a FileHasher could not be closed.", e);
     }
     
-    return HexBin.encode(resultantDigest);
+    return new String(resultantDigest, StandardCharsets.UTF_8);
   
   }
   
