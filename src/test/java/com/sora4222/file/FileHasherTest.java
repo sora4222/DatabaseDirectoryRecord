@@ -17,7 +17,7 @@ class FileHasherTest {
   void testTheHasherHashesValuesSmall() {
     FileHasher fileHasher = new FileHasher(constantFile, 1);
     Assertions.assertEquals(1, fileHasher.getMultiplier());
-    Assertions.assertEquals("BFA128CAEBD14DFEF2D9C18545E7031197A56601",
+    Assertions.assertEquals("��(���M�����E�\u0003\u0011��f\u0001",
         fileHasher.hashFile());
   }
   
