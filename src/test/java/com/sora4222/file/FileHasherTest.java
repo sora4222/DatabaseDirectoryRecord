@@ -16,11 +16,16 @@ class FileHasherTest {
   @Test
   void testTheHasherHashesValuesSmall() {
     FileHasher fileHasher = new FileHasher(constantFile, 1);
+    FileHasher secondHasher = new FileHasher(constantFile, 1);
     Assertions.assertEquals(1, fileHasher.getMultiplier());
-    Assertions.assertEquals("��(���M�����E�\u0003\u0011��f\u0001",
-        fileHasher.hashFile());
+    String hash = fileHasher.hashFile();
+    Assertions.assertEquals(secondHasher.hashFile(),
+        hash);
+    Assertions.assertEquals(-920533914,
+        hash.hashCode());
   }
   
+  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
   void differentMultiplierResultsInDifferentValues() {
     File fileToHash = createFileWithByteSize(20000, "src/test/resources/tempFileHasher.txt");

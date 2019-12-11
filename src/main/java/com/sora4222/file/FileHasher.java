@@ -102,12 +102,15 @@ public class FileHasher {
     long i = 0L;
     try {
       ArrayList<Byte> bytesToHash = new ArrayList<Byte>();
-      while (i * multiplier < fileToHash.length()) {
+      String results = "";
+      while (i * multiplier < fileToHash.length() - 2) {
         fileToHash.seek(i++ * multiplier);
-        bytesToHash.add(fileToHash.readByte());
+//        bytesToHash.add(fileToHash.readByte());
+        char currentChar = fileToHash.readChar();
+        results = results + currentChar;
       }
-      byte[] arrayAsString = normalizeBytes(bytesToHash);
-      digester.update(arrayAsString);
+//      byte[] arrayAsString = normalizeBytes(bytesToHash);
+      digester.update(results.getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
       logger.error(e);
       throw new RuntimeException(e);
