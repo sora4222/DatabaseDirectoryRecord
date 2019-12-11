@@ -2,6 +2,7 @@ package com.sora4222.file;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
 import lombok.Getter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,8 +10,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 
 public class FileHasher {
@@ -100,14 +103,31 @@ public class FileHasher {
   private void digestFile() {
     long i = 0L;
     try {
+      ArrayList<Byte> bytesToHash = new ArrayList<Byte>();
       while (i * multiplier < fileToHash.length()) {
-        
         fileToHash.seek(i++ * multiplier);
-        digester.update(fileToHash.readByte());
+        bytesToHash.add(fileToHash.readByte());
       }
+      byte[] arrayAsString = normalizeBytes(bytesToHash);
+      digester.update(arrayAsString);
     } catch (IOException e) {
       logger.error(e);
       throw new RuntimeException(e);
     }
+  }
+  
+  /**
+   * This converts the bytes which can be read differently in different
+   * computers, this gets the computer to convert the bytes to UTF-8
+   * a standard byte formation
+   *
+   * @param bytesToHash The
+   * @return The normalized bytes ready for the hash digester.
+   */
+  private byte[] normalizeBytes(ArrayList<Byte> bytesToHash) {
+    Byte[] collapsedArray = bytesToHash.toArray(new Byte[0]);
+    byte[] convertedToPrimitive = ArrayUtils.toPrimitive(collapsedArray);
+    String stringBasedBytes = new String(convertedToPrimitive);
+    return stringBasedBytes.getBytes(StandardCharsets.UTF_8);
   }
 }
