@@ -68,7 +68,6 @@ public class FileHasher {
     } catch (IOException e) {
       logger.error("A filestream for a FileHasher could not be closed.", e);
     }
-  
     return transformToHexadecimal(resultantDigest);
   }
   
@@ -114,16 +113,16 @@ public class FileHasher {
   private void digestFile() {
     long i = 0L;
     try {
-//      ArrayList<Byte> bytesToHash = new ArrayList<Byte>();
-      String results = "";
+      ArrayList<Byte> bytesToHash = new ArrayList<>();
+//      String results = "";
       while (i * multiplier < fileToHash.length() - 2) {
         fileToHash.seek(i++ * multiplier);
-//        bytesToHash.add(fileToHash.readByte());
-        char currentChar = fileToHash.readChar();
-        results = results + currentChar;
+        bytesToHash.add(fileToHash.readByte());
+//        char currentChar = fileToHash.readChar();
+//        results = results + currentChar;
       }
-//      byte[] arrayAsString = normalizeBytes(bytesToHash);
-      digester.update(results.getBytes(StandardCharsets.UTF_8));
+      byte[] arrayAsString = normalizeBytes(bytesToHash);
+      digester.update(arrayAsString);
     } catch (IOException e) {
       logger.error(e);
       throw new RuntimeException(e);
