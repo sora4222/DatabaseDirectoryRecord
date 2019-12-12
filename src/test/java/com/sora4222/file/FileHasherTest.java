@@ -21,8 +21,8 @@ class FileHasherTest {
     String hash = fileHasher.hashFile();
     Assertions.assertEquals(secondHasher.hashFile(),
         hash);
-    Assertions.assertEquals(-920533914,
-        hash.hashCode());
+    Assertions.assertEquals("bc2bad97016c6e8fb1e35dc63305997149eb398a",
+        hash);
   }
   
   @SuppressWarnings("ResultOfMethodCallIgnored")

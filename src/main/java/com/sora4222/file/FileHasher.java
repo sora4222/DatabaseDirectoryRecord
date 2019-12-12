@@ -68,9 +68,22 @@ public class FileHasher {
     } catch (IOException e) {
       logger.error("A filestream for a FileHasher could not be closed.", e);
     }
-    
-    return new String(resultantDigest, StandardCharsets.UTF_8);
   
+    return transformToHexadecimal(resultantDigest);
+  }
+  
+  /**
+   * This converts the bytes to a hexadecimal format
+   *
+   * @param HexadecimalCode The bytes that are the hexadecimal unconverted to readable format.
+   * @return the string hexadecimal
+   */
+  private String transformToHexadecimal(byte[] HexadecimalCode) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < HexadecimalCode.length; i++) {
+      sb.append(Integer.toString((HexadecimalCode[i] & 0xff) + 0x100, 16).substring(1));
+    }
+    return sb.toString();
   }
   
   /**
@@ -82,7 +95,7 @@ public class FileHasher {
     int gigabyte = 1000000000;
     try {
       if (fileToHash.length() < 40000) {
-        multiplier = 2;
+        multiplier = 1;
       } else if (fileToHash.length() < megabyte) {
         multiplier = 5;
       } else if (fileToHash.length() < 100 * megabyte) {
@@ -101,7 +114,7 @@ public class FileHasher {
   private void digestFile() {
     long i = 0L;
     try {
-      ArrayList<Byte> bytesToHash = new ArrayList<Byte>();
+//      ArrayList<Byte> bytesToHash = new ArrayList<Byte>();
       String results = "";
       while (i * multiplier < fileToHash.length() - 2) {
         fileToHash.seek(i++ * multiplier);
