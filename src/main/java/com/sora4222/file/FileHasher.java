@@ -1,7 +1,6 @@
 package com.sora4222.file;
 
-import lombok.Getter;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,10 +8,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 
 
 public class FileHasher {
@@ -21,7 +18,6 @@ public class FileHasher {
   private final MessageDigest digester;
   private final RandomAccessFile fileToHash;
   
-  @Getter
   private int multiplier;
   
   /**
@@ -50,39 +46,34 @@ public class FileHasher {
     }
   }
   
-  FileHasher(final File fileToHash, final int multiplier) {
+  public FileHasher(final File fileToHash, final int multiplier) {
     this(fileToHash);
     this.multiplier = multiplier;
   }
   
-  /**
-   * Gets a cryptographic hash of a file that can be used to compare files.
-   * @return A cryptographic hash of the file for comparison use.
-   */
-  public String hashFile() {
-    digestFile();
-    byte[] resultantDigest = digester.digest();
-  
-    try {
-      fileToHash.close();
-    } catch (IOException e) {
-      logger.error("A filestream for a FileHasher could not be closed.", e);
-    }
-    return transformToHexadecimal(resultantDigest);
+  public int getMultiplier() {
+    return multiplier;
   }
   
   /**
-   * This converts the bytes to a hexadecimal format
+   * Gets a cryptographic hash of a file that can be used to compare files.
    *
-   * @param HexadecimalCode The bytes that are the hexadecimal unconverted to readable format.
-   * @return the string hexadecimal
+   * @return A cryptographic hash of the file for comparison use.
    */
-  private String transformToHexadecimal(byte[] HexadecimalCode) {
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < HexadecimalCode.length; i++) {
-      sb.append(Integer.toString((HexadecimalCode[i] & 0xff) + 0x100, 16).substring(1));
+  public String hashFile() {
+    try {
+      String unjointBytes = getUnjointBytes();
+      return DigestUtils.sha1Hex(unjointBytes);
+    } catch (IOException e) {
+      logger.error(e);
+      return DigestUtils.sha1Hex("");
+    } finally {
+      try {
+        fileToHash.close();
+      } catch (IOException e) {
+        logger.error("A file finished hashing is not closing");
+      }
     }
-    return sb.toString();
   }
   
   /**
@@ -90,8 +81,8 @@ public class FileHasher {
    * will be used to calculate it's checksum.
    */
   private void setMultiplier() {
-    int megabyte = 1000000;
-    int gigabyte = 1000000000;
+    final int megabyte = 1000000;
+    final int gigabyte = 1000000000;
     try {
       if (fileToHash.length() < 40000) {
         multiplier = 1;
@@ -110,37 +101,23 @@ public class FileHasher {
     }
   }
   
-  private void digestFile() {
-    long i = 0L;
-    try {
-      ArrayList<Byte> bytesToHash = new ArrayList<>();
-//      String results = "";
-      while (i * multiplier < fileToHash.length() - 2) {
-        fileToHash.seek(i++ * multiplier);
-        bytesToHash.add(fileToHash.readByte());
-//        char currentChar = fileToHash.readChar();
-//        results = results + currentChar;
-      }
-      byte[] arrayAsString = normalizeBytes(bytesToHash);
-      digester.update(arrayAsString);
-    } catch (IOException e) {
-      logger.error(e);
-      throw new RuntimeException(e);
-    }
-  }
-  
   /**
-   * This converts the bytes which can be read differently in different
-   * computers, this gets the computer to convert the bytes to UTF-8
-   * a standard byte formation
+   * This will take the bytes from the file as characters, and
    *
-   * @param bytesToHash The
-   * @return The normalized bytes ready for the hash digester.
+   * @return A string containing the converted bytes of a file
+   * @throws IOException
    */
-  private byte[] normalizeBytes(ArrayList<Byte> bytesToHash) {
-    Byte[] collapsedArray = bytesToHash.toArray(new Byte[0]);
-    byte[] convertedToPrimitive = ArrayUtils.toPrimitive(collapsedArray);
-    String stringBasedBytes = new String(convertedToPrimitive);
-    return stringBasedBytes.getBytes(StandardCharsets.UTF_8);
+  private String getUnjointBytes() throws IOException {
+    StringBuilder sb = new StringBuilder();
+    long i = 0L;
+    if (fileToHash.length() - 2 < 0) {
+      logger.error("A file has a length that results in not reading a single character. Size:" + fileToHash.length());
+      return String.valueOf(fileToHash.readChar());
+    }
+    while (i * multiplier < fileToHash.length() - 2) {
+      fileToHash.seek(i++ * multiplier);
+      sb.append(fileToHash.readChar());
+    }
+    return sb.toString();
   }
 }

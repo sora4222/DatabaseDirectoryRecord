@@ -85,7 +85,6 @@ shadowJar {
 launch4j {
     mainClassName = application.mainClassName
     jar = "${projectDir}/build/libs/${project.tasks.shadowJar.outputs.files.singleFile.name}"
-
 }
 
 task buildRpm(type: Rpm) {
