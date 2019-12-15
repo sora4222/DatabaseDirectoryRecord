@@ -21,7 +21,7 @@ class FileHasherTest {
     String hash = fileHasher.hashFile();
     Assertions.assertEquals(secondHasher.hashFile(),
         hash);
-    Assertions.assertEquals("a9de840d398aaaf57859ca0755e30524b13a5aae",
+    Assertions.assertEquals("ed6f9f68fc072d601e4f3ebb70403d10a9a7249e",
         hash);
   }
   
