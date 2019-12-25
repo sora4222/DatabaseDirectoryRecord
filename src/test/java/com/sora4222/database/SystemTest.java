@@ -22,10 +22,10 @@ import java.util.UUID;
 
 public class SystemTest {
   private static final String LOCATION_OF_ROOT_ONE_ROOT_TWO = "src/test/resources/root1AndRoot2.json";
+  private static final String LOCATION_OF_ROOT_ONE_ROOT_TWO_EXCLUDE = "src/test/resources/root1AndRoot2Exclude.json";
   
   Connection connection;
   File temporaryFile = new File("");
-  Logger logger = LogManager.getLogger();
   
   @BeforeAll
   public static void resetConfig() {
@@ -40,7 +40,7 @@ public class SystemTest {
   public void setupDatabase() throws SQLException {
     System.clearProperty("config");
     UtilityForConfig.clearConfig();
-  
+    
     connection = UtilityForConnector.getOrInitializeConnection();
     connection.prepareStatement("DELETE FROM directory_records").executeUpdate();
     connection.prepareStatement("DELETE FROM file_paths").executeUpdate();
@@ -76,7 +76,7 @@ public class SystemTest {
         .setRootLocations(Arrays.asList("src/test/resources/root1", "src/test/resources/root2/"));
     
     DirectoryRecorder.setupScanning();
-  
+    
     ResultSet files = getDatabaseContents();
     int count = 0;
     while (files.next()) {
@@ -86,24 +86,24 @@ public class SystemTest {
   }
   
   @Test
-  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() throws IOException, SQLException, InterruptedException {
+  public void ChangesInScannedFolderWillBeRegisteredAndPutInDatabase() throws IOException, SQLException {
     System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
     UtilityForConfig.clearConfig();
     
     DirectoryRecorder.setupScanning();
-  
+    
     String randomName = UUID.randomUUID().toString() + ".txt";
-  
+    
     // Make a file
     temporaryFile = new File("src/test/resources/root1/" + randomName);
     FileWriter writer = new FileWriter(temporaryFile);
     writer.write(UUID.randomUUID().toString());
     writer.close();
-  
+    
     Assertions.assertTrue(temporaryFile.exists());
     
     DirectoryRecorder.scanOnce();
-  
+    
     // Check the file is in the database
     ResultSet databaseContents = getDatabaseContents();
     List<String> filePaths = new LinkedList<>();
@@ -111,23 +111,86 @@ public class SystemTest {
       filePaths.add(databaseContents.getString("FilePath"));
     }
     Assertions.assertTrue(filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")));
-  
+    
     // Delete the file
     Assertions.assertTrue(temporaryFile.delete());
-  
+    
     int i = 0;
     int maxRetries = 10;
     do {
       DirectoryRecorder.scanOnce();
       databaseContents = getDatabaseContents();
-    
+      
       filePaths = new LinkedList<>();
       while (databaseContents.next()) {
         filePaths.add(databaseContents.getString("FilePath"));
       }
-    } while (filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")) && i++ < maxRetries);
-  
+    } while (filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/"))
+        && i++ < maxRetries);
+    
     Assertions.assertFalse(filePaths.contains(temporaryFile.getAbsolutePath().replace("\\", "/")),
         "No more retries to test whether the database has deleted the files");
+  }
+  
+  @Test
+  public void regularExpressionsAreFilteredOnSetup() throws IOException, SQLException {
+    UtilityForConfig.clearConfig();
+    System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO_EXCLUDE);
+    
+    // Make a file
+    temporaryFile = new File("src/test/resources/root1/sharedFileb.txt");
+    FileWriter writer = new FileWriter(temporaryFile);
+    writer.write(UUID.randomUUID().toString());
+    writer.close();
+    
+    DirectoryRecorder.setupScanning();
+    
+    
+    // Shouldn't contain the shared files except the one I just put in.
+    boolean containsSharedFileb = false;
+    boolean innerFile1Contained = false;
+    ResultSet databaseContents = getDatabaseContents();
+    
+    while (databaseContents.next()) {
+      String file = databaseContents.getString("FilePath");
+      Assertions.assertFalse(file.contains("sharedFile1.txt"));
+      Assertions.assertFalse(file.contains("sharedFile2.txt"));
+      Assertions.assertFalse(file.contains("aSecondaryFile.txt"));
+      if (file.contains("sharedFileb.txt"))
+        containsSharedFileb = true;
+      if (file.contains("innerfile1.txt"))
+        innerFile1Contained = true;
+    }
+    Assertions.assertTrue(containsSharedFileb,
+        "The sharedFileb.txt was excluded from the database entries. This shouldn't have been excluded.");
+    Assertions.assertTrue(innerFile1Contained, "The inner file being contained shouldn't have changed.");
+    
+    Assertions.assertTrue(temporaryFile.delete());
+    
+  }
+  
+  @Test
+  public void regularExpressionsAreFilteredOnActivity() throws IOException, SQLException, InterruptedException {
+    UtilityForConfig.clearConfig();
+    System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO_EXCLUDE);
+    
+    DirectoryRecorder.setupScanning();
+    // Make a file matching a regex
+    temporaryFile = new File("src/test/resources/root1/sharedFile3AMassOfString.txt");
+    FileWriter writer = new FileWriter(temporaryFile);
+    writer.write(UUID.randomUUID().toString());
+    writer.close();
+    
+    Thread.sleep(1000);
+    DirectoryRecorder.scanOnce();
+    
+    // Shouldn't contain the shared files except the one I just put in.
+    ResultSet databaseContents = getDatabaseContents();
+    
+    while (databaseContents.next()) {
+      String file = databaseContents.getString("FilePath");
+      Assertions.assertFalse(file.contains("sharedFile3.txt"));
+    }
+    Assertions.assertTrue(temporaryFile.delete());
   }
 }

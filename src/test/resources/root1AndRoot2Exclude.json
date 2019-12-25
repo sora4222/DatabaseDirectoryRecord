@@ -1,0 +1,5 @@
+{
+  "rootLocations": ["src/test/resources/root1", "src/test/resources/root2/"],
+  "excludeRegex": [ "/sharedFile\\d", "/level2/", "\\.endVal"  ]
+
+}

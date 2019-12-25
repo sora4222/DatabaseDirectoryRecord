@@ -18,6 +18,7 @@ public class ConfigurationManagerTest {
   }
   
   @AfterAll
+  @BeforeAll
   public static void removeAllSetConfiguration() {
     System.setProperty("config", "");
     UtilityForConfig.clearConfig();
@@ -34,6 +35,8 @@ public class ConfigurationManagerTest {
     Config configFile = ConfigurationManager.getConfiguration();
     Assertions.assertEquals(LOCATIONS_IN_TEST_CONFIG, configFile.getRootLocations(),
       "The locations listed are not as expected.");
+    Assertions.assertTrue(configFile.compiledRegex.isEmpty());
+    Assertions.assertTrue(configFile.excludeRegex.isEmpty());
   }
   
   @Test

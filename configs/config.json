@@ -1,7 +1,6 @@
 {
   "databasePassword": "",
   "databaseUsername": "",
-  "dataTable": "directory_records",
   "jdbcConnectionUrl": "jdbc:mysql://<URL here>",
   "rootLocations": [
     "/location1",

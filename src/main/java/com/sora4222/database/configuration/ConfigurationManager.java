@@ -24,6 +24,7 @@ public class ConfigurationManager {
   }
   
   private static void instantiateConfig() {
+    logger.info("The configuration is being instantiated.");
     logger.debug("Location of config: " + location);
     
     ObjectMapper jsonToObject = new ObjectMapper();

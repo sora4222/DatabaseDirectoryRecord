@@ -1,10 +1,10 @@
 {
   "databasePassword": "password",
   "databaseUsername": "username",
-  "dataTable": "table",
   "jdbcConnectionUrl": "jdbc:databasetype://your_uri/directory_records_db",
   "rootLocations": [
     "/opt/database_directory/root1",
     "/home/"
-  ]
+  ],
+  "excludeRegex": []
 }

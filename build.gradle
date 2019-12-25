@@ -12,7 +12,7 @@ plugins {
 }
 
 group 'com.sora4222.database'
-version '1.0.1'
+version '1.1.0'
 
 sourceCompatibility = 1.8
 
@@ -70,7 +70,6 @@ test {
     systemProperty "databasePassword", System.getProperty("databasePassword")
     systemProperty "databaseUsername", System.getProperty("databaseUsername")
     systemProperty "jdbcConnectionUrl", System.getProperty("jdbcConnectionUrl")
-    systemProperty "dataTable", System.getProperty("dataTable")
 
     minHeapSize = "256m"
     maxHeapSize = "4g"

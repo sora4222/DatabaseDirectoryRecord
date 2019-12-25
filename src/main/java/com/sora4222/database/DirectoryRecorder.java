@@ -1,5 +1,6 @@
 package com.sora4222.database;
 
+import com.sora4222.database.configuration.Config;
 import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.connectors.*;
 import com.sora4222.file.FileHasher;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,6 +48,15 @@ public class DirectoryRecorder {
     logger.trace("startScanning");
     while (true) {
       scanOnce();
+      sleepXMinutes(2);
+    }
+  }
+  
+  private static void sleepXMinutes(long x) {
+    try {
+      TimeUnit.MINUTES.sleep(x);
+    } catch (InterruptedException e) {
+      logger.error(e);
     }
   }
   
@@ -112,7 +124,7 @@ public class DirectoryRecorder {
   
   static void setupScanning() {
     logger.trace("setupScanning");
-  
+    
     //Subscribe to directories for the first time and seed
     for (Path confDirPath : ConfigurationManager.getConfiguration().getRootLocationsAsPaths()) {
       subscribeToChangesFromAllDirectories(confDirPath);
@@ -134,12 +146,12 @@ public class DirectoryRecorder {
               .filter(fileInformation -> !allFilesInDatabaseForThisComputer.contains(fileInformation))
               .peek(fileInformation -> logger.debug("FilterOut: " + fileInformation.getFullLocation()))
               .collect(Collectors.toList());
-  
+      
       logger.info(String.format("During seeding %d files were not in the database.", filesNotInTheDatabase.size()));
       
       // Upload those files.
       Inserter.insertRecordIntoDatabase(filesNotInTheDatabase);
-  
+      
       if (!Boolean.getBoolean("skipUpdateAndDelete")) {
         logger.info("Initial update and delete processing");
         List<FileCommand> updates = findUpdatesToDatabase(confDirPath);
@@ -164,15 +176,16 @@ public class DirectoryRecorder {
   
   private static List<FileCommand> findUpdatesToDatabase(final Path confDirPath) {
     logger.trace("findUpdatesToDatabase");
-  
+    
     try (Stream<Path> objectsInConfigurationDirectories = Files.walk(confDirPath)) {
       final List<FileInformation> existingFiles = objectsInConfigurationDirectories
           .parallel()
           .filter(path -> path.toFile().isFile())
+          .filter(path -> filterPathsBasedOnRegexExcludes(path))
           .map(path -> convertPathToFileInformation(path))
           .filter(fileInformation -> !fileInformation.equals(FileInformation.EmptyFileInformation))
           .collect(Collectors.toList());
-    
+      
       return DatabaseQuery
           .allFilesAlreadyInBothComputerAndDatabase(existingFiles)
           .parallelStream()
@@ -209,16 +222,20 @@ public class DirectoryRecorder {
   private static void subscribeToChangesFromAllDirectories(final Path directory) {
     logger.trace("subscribeToChangesFromAllDirectories");
     try (Stream<Path> objectsInConfigurationDirectories = Files.walk(directory)) {
-      objectsInConfigurationDirectories.parallel().filter(path -> path.toFile().isDirectory()).forEach(path -> {
-        try {
-          directoriesWatching.put(path, path.register(subscribeService,
-              StandardWatchEventKinds.ENTRY_CREATE,
-              StandardWatchEventKinds.ENTRY_DELETE,
-              StandardWatchEventKinds.ENTRY_MODIFY));
-        } catch (IOException e) {
-          logger.error("Subscribing to all directories has failed withing the stream: ", e);
-        }
-      });
+      objectsInConfigurationDirectories
+          .parallel()
+          .filter(path -> path.toFile().isDirectory())
+          .filter(DirectoryRecorder::filterPathsBasedOnRegexExcludes)
+          .forEach(path -> {
+            try {
+              directoriesWatching.put(path, path.register(subscribeService,
+                  StandardWatchEventKinds.ENTRY_CREATE,
+                  StandardWatchEventKinds.ENTRY_DELETE,
+                  StandardWatchEventKinds.ENTRY_MODIFY));
+            } catch (IOException e) {
+              logger.error("Subscribing to all directories has failed withing the stream: ", e);
+            }
+          });
     } catch (IOException e) {
       logger.error("Subscribing to all directories failed: ", e);
     }
@@ -231,6 +248,7 @@ public class DirectoryRecorder {
       // Obtain all files under root folder
       return objectsInConfigurationDirectories
           .filter(path -> path.toFile().isFile())
+          .filter(path -> filterPathsBasedOnRegexExcludes(path))
           .map(path -> convertPathToFileInformation(path))
           .filter(fileInformation -> !fileInformation.equals(FileInformation.EmptyFileInformation))
           .collect(Collectors.toList());
@@ -238,5 +256,13 @@ public class DirectoryRecorder {
       logger.error(String.format("The configured path has had an error: %s", confDirPath.toString()), e);
       throw new RuntimeException(e);
     }
+  }
+  
+  private static boolean filterPathsBasedOnRegexExcludes(Path path) {
+    for (Predicate<String> patternCheck : ConfigurationManager.getConfiguration().getExcludeRegex()) {
+      if (patternCheck.test(path.toAbsolutePath().toString()))
+        return false;
+    }
+    return true;
   }
 }
