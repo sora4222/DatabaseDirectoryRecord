@@ -1,5 +1,5 @@
 Configuration:
-  status: error
+  status: info
   name: testConfiguration
   properties:
     property:
@@ -9,7 +9,7 @@ Configuration:
         value: /var/log/database-directory-recorder/
 
   thresholdFilter:
-    level: error
+    level: info
   appenders:
     Console:
       name: STDOUT
@@ -17,7 +17,7 @@ Configuration:
         dateTimeFormatPattern: "yyyy-MM-dd HH:mm:ss.SSSZZZ"
         stackTraceEnabled: true
     RollingFile:
-      name: File
+      name: FILE
       fileName: ${basedir}${filename}
       filePattern: "logs/log-%d{yyyy-MM-dd}.log"
       LogstashLayout:
@@ -25,7 +25,7 @@ Configuration:
         stackTraceEnabled: true
       Filters:
         ThresholdFilter:
-          level: error
+          level: info
       Policies:
         TimeBasedTriggeringPolicy:
           interval: 1
@@ -34,10 +34,11 @@ Configuration:
         Delete:
           basePath: ${basedir}
           IfLastModified:
-            age: 2d
+            age: 10d
 
   Loggers:
     Root:
-      level: error
+      level: info
       AppenderRef:
-        ref: STDOUT
+        - ref: STDOUT
+        - ref: FILE

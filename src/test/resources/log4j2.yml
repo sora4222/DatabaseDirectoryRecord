@@ -17,7 +17,7 @@ Configuration:
         dateTimeFormatPattern: "yyyy-MM-dd HH:mm:ss.SSSZZZ"
         stackTraceEnabled: true
     RollingFile:
-      name: File
+      name: FILE
       fileName: ${basedir}${filename}
       filePattern: "logs/log-%d{yyyy-MM-dd}.log"
       LogstashLayout:
@@ -25,7 +25,7 @@ Configuration:
         stackTraceEnabled: true
       Filters:
         ThresholdFilter:
-          level: debug
+          level: info
       Policies:
         TimeBasedTriggeringPolicy:
           interval: 1
@@ -40,4 +40,5 @@ Configuration:
     Root:
       level: debug
       AppenderRef:
-        ref: STDOUT
+        - ref: STDOUT
+        - ref: FILE
