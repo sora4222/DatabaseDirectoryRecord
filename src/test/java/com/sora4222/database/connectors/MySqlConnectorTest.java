@@ -13,7 +13,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MySqlConnectorTest {
   
@@ -46,9 +45,9 @@ public class MySqlConnectorTest {
     ConnectionStorage.close();
   }
   
-  private List<FileInformation> assertNumberItemsEqual(final int expected) throws SQLException {
-    connector = ConnectionStorage.getConnection();
-    ResultSet found = connector.prepareStatement(
+  public static List<FileInformation> assertNumberItemsEqual(final int expected) throws SQLException {
+    Connection connectorStatic = ConnectionStorage.getConnection();
+    ResultSet found = connectorStatic.prepareStatement(
         "SELECT file_paths.FilePath as filePath, directory_records.FileHash as fileHash " +
             "FROM `directory_records` " +
             "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId").executeQuery();
@@ -111,7 +110,7 @@ public class MySqlConnectorTest {
     insertFileWithComputerAndPath(fileName1, "1234asdf");
     Assertions.assertEquals(1,
         DatabaseQuery
-            .allFilesAlreadyInBothComputerAndDatabase(Collections.singletonList(new FileInformation(fileName1, "1234asdf")))
+            .queryTheDatabaseForFiles(Collections.singletonList(new FileInformation(fileName1, "1234asdf")))
             .size());
     
     String fileName2 = "/dir/test_file_2." + UUID.randomUUID().toString();
@@ -119,7 +118,7 @@ public class MySqlConnectorTest {
     
     Assertions.assertEquals(1,
         DatabaseQuery
-            .allFilesAlreadyInBothComputerAndDatabase(
+            .queryTheDatabaseForFiles(
                 Collections.singletonList(new FileInformation(fileName2, "5678asdf"))).size());
     
     List<FileInformation> bothFiles = new ArrayList<>();
@@ -127,7 +126,7 @@ public class MySqlConnectorTest {
     bothFiles.add(new FileInformation(fileName1, "1234asdf"));
     Assertions.assertEquals(2,
         DatabaseQuery
-            .allFilesAlreadyInBothComputerAndDatabase(bothFiles).size());
+            .queryTheDatabaseForFiles(bothFiles).size());
   }
   
   private void insertFileWithComputerAndPath(String fileName, String hash) throws SQLException {
@@ -147,7 +146,7 @@ public class MySqlConnectorTest {
   
   @Test
   void allQueriesAcceptEmptyList() {
-    Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.allFilesAlreadyInBothComputerAndDatabase(Collections.emptyList()));
+    Assertions.assertEquals(Collections.EMPTY_LIST, DatabaseQuery.queryTheDatabaseForFiles(Collections.emptyList()));
     Inserter.insertRecordIntoDatabase(Collections.emptyList());
     Updater.sendUpdatesToDatabase(Collections.emptyList());
     Deleter.sendDeletesToDatabase(Collections.emptyList());
@@ -156,47 +155,11 @@ public class MySqlConnectorTest {
   @Test
   void testDatabaseEntriesReturnsNothingWhenTheFilesAreNotInDatabase() {
     Path rootOneDirectory = Paths.get("src/test/resources/root1/");
-    DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
-    Assertions.assertEquals(0, entries.databaseRecordCount());
+    DatabaseEntries entries = new DatabaseEntries();
     
-    List<FileInformation> stream = entries
-        .getComputersFilesFromDatabase()
-        .limit(entries.databaseRecordCount())
-        .collect(Collectors.toList());
+    List<FileInformation> stream = entries.getFiles();
     Assertions.assertTrue(stream.isEmpty());
   }
-
-//  @Test
-//  void testDataBaseEntriesWillReturnARowWithTheSrcRootInItButNoOtherRow() throws SQLException {
-//    Path rootOneDirectory = Paths.get("src/test/resources/root1/");
-//    insertFileWithComputerAndPath(rootOneDirectory.resolve("sharedFile1.txt")
-//        .toAbsolutePath()
-//        .toString()
-//        .replace("\\", "/"), "md5");
-//    // Insert something that exists
-//        rootOneDirectory.resolve("sharedFile1.txt")
-//            .toAbsolutePath()
-//            .toString()
-//            .replace("\\", "/"));
-//    Path rootTwoDirectory = Paths.get("src/test/resources/root2/");
-//    // Insert something that is in a different directory
-//    statement = connector
-//        .prepareStatement(
-//            "INSERT INTO `directory_records` (ComputerId, FilePath, FileHash) " +
-//                "VALUES (?, (SELECT FileId FROM file_paths WHERE FilePath=?), '125asdf')");
-//    statement.setInt(1, ComputerProperties.computerNameId.get());
-//    statement.setString(2,
-//        rootTwoDirectory.resolve("sharedFile2.txt")
-//            .toAbsolutePath()
-//            .toString()
-//            .replace("\\", "/"));
-//    statement.executeUpdate();
-//
-//    DatabaseEntries entries = new DatabaseEntries(rootOneDirectory);
-//    Assertions.assertEquals(1, entries.databaseRecordCount());
-//
-//    List<FileInformation> stream = entries.getComputersFilesFromDatabase()
-//        .limit(entries.databaseRecordCount()).collect(Collectors.toList());
-//    Assertions.assertEquals(1, stream.size());
-//  }
+  
+  //TODO: Create a  test for databaseEntries.
 }

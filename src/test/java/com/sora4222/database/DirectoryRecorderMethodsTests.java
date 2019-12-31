@@ -1,5 +1,6 @@
 package com.sora4222.database;
 
+import com.sora4222.database.configuration.UtilityForConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -14,6 +15,7 @@ public class DirectoryRecorderMethodsTests {
   @Test
   void allFilesGathered() {
     System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO);
+    UtilityForConfig.clearConfig();
     List<String> files =
         DirectoryRecorder.gatherAllFilesUnderRootPath(Paths.get("src/test/resources/root1"))
             .stream()

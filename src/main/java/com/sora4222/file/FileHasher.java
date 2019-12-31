@@ -8,14 +8,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 
 public class FileHasher {
   private static Logger logger = LogManager.getLogger();
   
-  private final MessageDigest digester;
   private final RandomAccessFile fileToHash;
   
   private int multiplier;
@@ -30,7 +27,10 @@ public class FileHasher {
     try {
       this.fileToHash = new RandomAccessFile(fileToHash, "r");
     } catch (FileNotFoundException e) {
-      logger.warn(e);
+      if (fileToHash.canExecute() && fileToHash.canRead())
+        logger.warn("The file permissions were: read:" + fileToHash.canRead() +
+            ", executable: " + fileToHash.canExecute(), e);
+      logger.info("File failed to hash: " + fileToHash.getAbsolutePath().replace("\\", "/"));
       throw new RuntimeException(e);
     }
   
@@ -38,12 +38,6 @@ public class FileHasher {
         fileToHash.getName(), fileToHash.length()));
     setMultiplier();
   
-    try {
-      digester = MessageDigest.getInstance("SHA-1");
-    } catch (NoSuchAlgorithmException e) {
-      logger.error(e.getMessage());
-      throw new RuntimeException(e);
-    }
   }
   
   public FileHasher(final File fileToHash, final int multiplier) {

@@ -33,6 +33,18 @@ public class Config {
   @Getter
   String databasePassword = "";
   
+  @Getter
+  @Setter
+  int depthOfTree = 4;
+  
+  @Getter
+  @Setter
+  int batchMaxTimeSeconds = 120;
+  
+  @Getter
+  @Setter
+  int batchMaxSize = 10000;
+  
   @Setter
   List<String> excludeRegex = new LinkedList<>();
   

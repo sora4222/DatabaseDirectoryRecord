@@ -52,8 +52,6 @@ public class Inserter {
       rollbackDatabase(databaseConnection);
       logger.error("During an insertion statement there has been an SQL exception: ", e);
       throw new RuntimeException(e);
-    } finally {
-      ConnectionStorage.close();
     }
   }
   

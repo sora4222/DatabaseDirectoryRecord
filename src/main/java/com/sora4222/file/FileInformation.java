@@ -1,6 +1,8 @@
 package com.sora4222.file;
 
 import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,6 +11,8 @@ import java.time.LocalDateTime;
 
 public class FileInformation {
   public static final FileInformation EmptyFileInformation = new FileInformation(Paths.get(""));
+  private static final Logger logger = LogManager.getLogger();
+  
   @Getter
   private final Path fullLocation;
   @Getter
@@ -96,5 +100,15 @@ public class FileInformation {
     hash = 13 * hash + fileHash.hashCode();
     hash = 13 * hash + fullLocation.hashCode();
     return hash;
+  }
+  
+  public static FileInformation fromPath(Path path){
+    try {
+      FileHasher hasher = new FileHasher(path.toFile());
+      return new FileInformation(path, hasher.hashFile());
+    } catch (RuntimeException e) {
+      logger.info("Converting a path to a file information or hashing a file has failed", e);
+      return new FileInformation(path, "N\\A");
+    }
   }
 }

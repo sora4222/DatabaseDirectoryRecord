@@ -26,7 +26,6 @@ public class Deleter {
         deleteStatement.setString(1, fileToDelete.getFullLocationAsLinuxBasedString());
         deleteStatement.setInt(2, ComputerProperties.computerNameId.get());
   
-        String delete = deleteStatement.toString();
         logger.debug("SQL delete statement to execute: " + deleteStatement.toString());
         deleteStatement.executeUpdate();
         logger.debug("Update count: " + deleteStatement.getUpdateCount());
@@ -34,8 +33,6 @@ public class Deleter {
       
     } catch (SQLException e) {
       logger.error("There has been an error trying to delete a group of rows.", e);
-    } finally {
-      ConnectionStorage.close();
     }
   }
 }
