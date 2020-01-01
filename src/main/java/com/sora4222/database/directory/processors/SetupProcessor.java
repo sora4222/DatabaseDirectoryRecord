@@ -1,4 +1,4 @@
-package com.sora4222.database.thread;
+package com.sora4222.database.directory.processors;
 
 import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.connectors.DatabaseQuery;
@@ -45,31 +45,35 @@ public class SetupProcessor implements Runnable {
   private void loopThroughFilesToAdd() {
     do {
       loadInFiles();
-      
+  
       logger.debug("Time elapsed: " + elapsedTime.getTime(TimeUnit.SECONDS));
       if (batchHold.size() >= ConfigurationManager.getConfiguration().getBatchMaxSize()
           || elapsedTime.getTime(TimeUnit.SECONDS) >= ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()) {
         restartTimer();
         if (batchHold.size() == 0)
           continue;
-        
+    
         // Send the ones that are not in the database via updates or insert probably with another thread
         insertFilesIntoDatabase();
       }
-      
-      try {
-        TimeUnit.SECONDS.sleep(1);
-      } catch (InterruptedException e) {
-        logger.error("InterruptedException");
-      }
+      sleepOneSecond();
+  
     } while (!stopProcessor);
+  }
+  
+  private void sleepOneSecond() {
+    try {
+      TimeUnit.SECONDS.sleep(1);
+    } catch (InterruptedException e) {
+      logger.error("InterruptedException");
+    }
   }
   
   private void loadInFiles() {
     FileInformation result;
     while (batchHold.size() < ConfigurationManager.getConfiguration().getBatchMaxSize()
         && elapsedTime.getTime(TimeUnit.SECONDS) < ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()
-        && (result = Tools.hardDriveSetupQueue.poll()) != null) {
+        && (result = ConcurrentQueues.hardDriveSetupQueue.poll()) != null) {
       logger.debug("Adding a file to SetupProcessor batch.");
       batchHold.add(result);
     }

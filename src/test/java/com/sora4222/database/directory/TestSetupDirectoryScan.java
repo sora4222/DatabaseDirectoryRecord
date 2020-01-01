@@ -1,6 +1,6 @@
 package com.sora4222.database.directory;
 
-import com.sora4222.database.thread.Tools;
+import com.sora4222.database.directory.processors.ConcurrentQueues;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -13,9 +13,9 @@ public class TestSetupDirectoryScan {
   @Test
   public void TestFilesAreAdded() throws IOException {
     Files.walkFileTree(Paths.get("src/test/resources/root1/"), SetupDirectoryScan.visitor);
-    Assertions.assertEquals(4, Tools.hardDriveSetupQueue.size(),
-      "The expected size was 4, actual: " +
-        Tools.hardDriveSetupQueue.size() +
-        "\n list:" + Tools.hardDriveSetupQueue.toString());
+    Assertions.assertEquals(4, ConcurrentQueues.hardDriveSetupQueue.size(),
+        "The expected size was 4, actual: " +
+            ConcurrentQueues.hardDriveSetupQueue.size() +
+            "\n list:" + ConcurrentQueues.hardDriveSetupQueue.toString());
   }
 }

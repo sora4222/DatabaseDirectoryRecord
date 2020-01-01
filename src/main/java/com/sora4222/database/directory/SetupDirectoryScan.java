@@ -2,19 +2,14 @@ package com.sora4222.database.directory;
 
 import com.sora4222.database.DirectoryRecorder;
 import com.sora4222.database.configuration.ConfigurationManager;
-import com.sora4222.database.thread.SetupProcessor;
-import com.sora4222.database.thread.Tools;
+import com.sora4222.database.directory.processors.ConcurrentQueues;
+import com.sora4222.database.directory.processors.SetupProcessor;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +34,7 @@ public class SetupDirectoryScan {
     public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) {
       if (Files.isReadable(path) && DirectoryRecorder.filterPathsBasedOnRegexExcludes(path)) {
         FileInformation file = FileInformation.fromPath(path);
-        Tools.hardDriveSetupQueue.add(file);
+        ConcurrentQueues.hardDriveSetupQueue.add(file);
       }
       
       return FileVisitResult.CONTINUE;
@@ -52,13 +47,13 @@ public class SetupDirectoryScan {
       }
       return FileVisitResult.CONTINUE;
     }
-    
+  
     @Override
-    public FileVisitResult postVisitDirectory(Path path, IOException e) {
+    public FileVisitResult postVisitDirectory(Path directoryPath, IOException e) {
       if (e != null) {
         logger.error(e);
       }
-      
+      ConcurrentQueues.visitedDirectoriesQueue.add(directoryPath);
       return FileVisitResult.CONTINUE;
     }
   };
@@ -80,8 +75,8 @@ public class SetupDirectoryScan {
         logger.error("An IOException occurred whilst scanning the file tree.", e);
       }
     }
-    
-    while (Tools.hardDriveSetupQueue.size() != 0){
+  
+    while (ConcurrentQueues.hardDriveSetupQueue.size() != 0) {
       try {
         TimeUnit.SECONDS.sleep(3);
       } catch (InterruptedException e) {

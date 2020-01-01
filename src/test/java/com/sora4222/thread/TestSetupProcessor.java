@@ -4,8 +4,8 @@ import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.connectors.ConnectionStorage;
 import com.sora4222.database.connectors.MySqlConnectorTest;
 import com.sora4222.database.connectors.UtilityForConnector;
-import com.sora4222.database.thread.SetupProcessor;
-import com.sora4222.database.thread.Tools;
+import com.sora4222.database.directory.processors.ConcurrentQueues;
+import com.sora4222.database.directory.processors.SetupProcessor;
 import com.sora4222.file.FileInformation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -40,7 +40,7 @@ public class TestSetupProcessor {
   @Test
   public void outputsFilesOverTime() throws InterruptedException, SQLException {
     FileInformation fakeFile = new FileInformation("aFile.txt", "AFAKEHASH");
-    Tools.hardDriveSetupQueue.add(fakeFile);
+    ConcurrentQueues.hardDriveSetupQueue.add(fakeFile);
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(1);
     ConfigurationManager.getConfiguration().setBatchMaxSize(100);
   
@@ -57,15 +57,15 @@ public class TestSetupProcessor {
   
   @Test
   public void outputsFilesOverBatch() throws InterruptedException, SQLException {
-    Tools.hardDriveSetupQueue.add(new FileInformation("aFile.txt", "AFAKEHASH"));
-    Tools.hardDriveSetupQueue.add(new FileInformation("aFile2.txt", "AFAKEHASH2"));
+    ConcurrentQueues.hardDriveSetupQueue.add(new FileInformation("aFile.txt", "AFAKEHASH"));
+    ConcurrentQueues.hardDriveSetupQueue.add(new FileInformation("aFile2.txt", "AFAKEHASH2"));
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(2);
   
     SetupProcessor processor = new SetupProcessor();
     Thread processorThread = new Thread(processor);
     processorThread.start();
-    
+  
     processor.stopProcessor();
     processorThread.join(5000);
     Assertions.assertFalse(processorThread.isAlive());
@@ -76,7 +76,7 @@ public class TestSetupProcessor {
   @Test
   public void outputsFilesWillFlush() throws InterruptedException, SQLException {
     FileInformation fakeFile = new FileInformation("aFile.txt", "AFAKEHASH");
-    Tools.hardDriveSetupQueue.add(fakeFile);
+    ConcurrentQueues.hardDriveSetupQueue.add(fakeFile);
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(1000);
     
