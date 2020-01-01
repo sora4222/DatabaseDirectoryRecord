@@ -5,6 +5,7 @@ import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -19,6 +20,8 @@ public class Inserter {
   private static final String insertionRecordSql =
       "INSERT IGNORE INTO `directory_records` (ComputerId, FileId, FileHash) " +
           "VALUES (?, (SELECT FileId FROM file_paths WHERE FilePath = ?), ?)";
+  
+  private static final String insertDirectory = "INSERT IGNORE INTO `directories_stored` (directories_stored.AbsoluteFilePath, directories_stored.ComputerIdNumber) VALUES (?, ?)";
   
   /**
    * Inserts a list of files into the directory database.
@@ -68,7 +71,7 @@ public class Inserter {
         insertionSql.addBatch();
       }
       logger.debug("SQL statement for insertion: " + insertionSql.toString());
-      
+  
       insertionSql.executeBatch();
       databaseConnection.commit();
       databaseConnection.setAutoCommit(true);
@@ -76,6 +79,22 @@ public class Inserter {
       rollbackDatabase(databaseConnection);
       logger.error("During an insertion statement there has been an SQL exception: ", e);
       throw new RuntimeException(e);
+    }
+  }
+  
+  public static void insertDirectoriesToDirectoryTable(List<Path> directoriesToInsert) {
+    Connection databaseConnection = ConnectionStorage.getConnection();
+    try {
+      PreparedStatement insertionSql = databaseConnection.prepareStatement(insertDirectory);
+      for (Path path : directoriesToInsert) {
+        insertionSql.setString(1, path.toAbsolutePath().toString().replace("\\", "/"));
+        insertionSql.setInt(1, ComputerProperties.computerNameId.get());
+        insertionSql.addBatch();
+      }
+      logger.debug("SQL statement for insertion: " + insertionSql.toString());
+      insertionSql.executeBatch();
+    } catch (SQLException e) {
+      logger.error("Inserting directories");
     }
   }
   

@@ -18,7 +18,7 @@ public class SetupProcessor implements Runnable {
   private boolean stopProcessor;
   private static final Logger logger = LogManager.getLogger();
   
-  public SetupProcessor(){
+  public SetupProcessor() {
     stopProcessor = false;
   }
   
@@ -29,21 +29,26 @@ public class SetupProcessor implements Runnable {
   @Override
   public void run() {
     logger.debug("Configuration batch time: " + ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds());
-    logger.debug("Configuration batch size: "  + ConfigurationManager.getConfiguration().getBatchMaxSize());
+    logger.debug("Configuration batch size: " + ConfigurationManager.getConfiguration().getBatchMaxSize());
   
     elapsedTime.start();
+  
+    loopThroughFilesToAdd();
+  
+    if (batchHold.size() != 0)
+      insertFilesIntoDatabase();
+  
+    elapsedTime.reset();
+    logger.info("The setup processor has shutdown.");
+  }
+  
+  private void loopThroughFilesToAdd() {
     do {
-      FileInformation result;
-      while(batchHold.size() < ConfigurationManager.getConfiguration().getBatchMaxSize()
-        && elapsedTime.getTime(TimeUnit.SECONDS) < ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()
-        && (result = Tools.hardDriveSetupQueue.poll() )!= null){
-        logger.debug("Adding a file to SetupProcessor batch.");
-        batchHold.add(result);
-      }
-    
+      loadInFiles();
+      
       logger.debug("Time elapsed: " + elapsedTime.getTime(TimeUnit.SECONDS));
-      if(batchHold.size() >= ConfigurationManager.getConfiguration().getBatchMaxSize()
-        || elapsedTime.getTime(TimeUnit.SECONDS) >= ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()){
+      if (batchHold.size() >= ConfigurationManager.getConfiguration().getBatchMaxSize()
+          || elapsedTime.getTime(TimeUnit.SECONDS) >= ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()) {
         restartTimer();
         if (batchHold.size() == 0)
           continue;
@@ -58,11 +63,16 @@ public class SetupProcessor implements Runnable {
         logger.error("InterruptedException");
       }
     } while (!stopProcessor);
-    if(batchHold.size() != 0)
-      insertFilesIntoDatabase();
-    
-    elapsedTime.reset();
-    logger.info("The setup processor has shutdown.");
+  }
+  
+  private void loadInFiles() {
+    FileInformation result;
+    while (batchHold.size() < ConfigurationManager.getConfiguration().getBatchMaxSize()
+        && elapsedTime.getTime(TimeUnit.SECONDS) < ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()
+        && (result = Tools.hardDriveSetupQueue.poll()) != null) {
+      logger.debug("Adding a file to SetupProcessor batch.");
+      batchHold.add(result);
+    }
   }
   
   private void restartTimer() {
