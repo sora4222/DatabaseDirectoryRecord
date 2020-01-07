@@ -8,33 +8,33 @@ DROP TABLE IF EXISTS file_paths;
 
 CREATE TABLE IF NOT EXISTS file_paths
 (
-    FileIdNumber     int AUTO_INCREMENT,
+    FileId           int AUTO_INCREMENT,
     AbsoluteFilePath varchar(2500),
-    PRIMARY KEY (FileIdNumber)
+    PRIMARY KEY (FileId)
 );
 
 CREATE TABLE IF NOT EXISTS computer_names
 (
-    ComputerIdNumber int AUTO_INCREMENT,
-    ComputerName     varchar(300),
-    PRIMARY KEY (ComputerIdNumber)
+    ComputerId   int AUTO_INCREMENT,
+    ComputerName varchar(300),
+    PRIMARY KEY (ComputerId)
 );
 
 CREATE TABLE IF NOT EXISTS directories_stored
 (
-    DirectoryIdNumber int AUTO_INCREMENT,
-    ComputerIdNumber  int,
-    AbsoluteFilePath  varchar(2500),
-    PRIMARY KEY (directoryIdNumber)
+    DirectoryId      int AUTO_INCREMENT,
+    ComputerId       int,
+    AbsoluteFilePath varchar(2500),
+    PRIMARY KEY (DirectoryId)
 );
 
 CREATE TABLE IF NOT EXISTS directory_records
 (
-    FileNumber              int,
+    FileId                  int,
     FileHash                varchar(100),
-    ComputerIdNumber        int,
+    ComputerId              int,
     DatabaseRowCreationTime datetime default CURRENT_TIMESTAMP,
-    PRIMARY KEY (FileNumber, ComputerIdNumber),
-    FOREIGN KEY (FileNumber) REFERENCES file_paths (FileIdNumber),
-    FOREIGN KEY (ComputerIdNumber) REFERENCES computer_names (ComputerIdNumber)
+    PRIMARY KEY (FileId, ComputerId),
+    FOREIGN KEY (FileId) REFERENCES file_paths (FileId),
+    FOREIGN KEY (ComputerId) REFERENCES computer_names (ComputerId)
 );

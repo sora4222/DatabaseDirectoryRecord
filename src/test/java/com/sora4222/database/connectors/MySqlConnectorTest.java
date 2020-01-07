@@ -48,9 +48,9 @@ public class MySqlConnectorTest {
   public static List<FileInformation> assertNumberItemsEqual(final int expected) throws SQLException {
     Connection connectorStatic = ConnectionStorage.getConnection();
     ResultSet found = connectorStatic.prepareStatement(
-        "SELECT file_paths.FilePath as filePath, directory_records.FileHash as fileHash " +
-            "FROM `directory_records` " +
-            "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId").executeQuery();
+        "SELECT file_paths.AbsoluteFilePath as filePath, directory_records.FileHash as fileHash " +
+          "FROM `directory_records` " +
+          "INNER JOIN file_paths ON directory_records.FileId = file_paths.FileId").executeQuery();
     int i = 0;
     List<FileInformation> files = new LinkedList<>();
     while (found.next()) {
@@ -91,11 +91,11 @@ public class MySqlConnectorTest {
   
   private int InsertFileReturnId(String fileName) throws SQLException {
     connector = ConnectionStorage.getConnection();
-    PreparedStatement stmt = connector.prepareStatement("INSERT INTO file_paths (FilePath) VALUES (?)");
+    PreparedStatement stmt = connector.prepareStatement("INSERT INTO file_paths (AbsoluteFilePath) VALUES (?)");
     stmt.setString(1, fileName);
     stmt.execute();
-    
-    stmt = connector.prepareStatement("SELECT FileId FROM file_paths WHERE FilePath = ?");
+  
+    stmt = connector.prepareStatement("SELECT FileId FROM file_paths WHERE AbsoluteFilePath = ?");
     stmt.setString(1, fileName);
     ResultSet set = stmt.executeQuery();
     

@@ -4,8 +4,8 @@ import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.connectors.ConnectionStorage;
 import com.sora4222.database.connectors.MySqlConnectorTest;
 import com.sora4222.database.connectors.UtilityForConnector;
-import com.sora4222.database.directory.processors.ConcurrentQueues;
-import com.sora4222.database.directory.processors.SetupProcessor;
+import com.sora4222.database.setup.processors.ConcurrentQueues;
+import com.sora4222.database.setup.processors.UploadFileDataRunnable;
 import com.sora4222.file.FileInformation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public class TestSetupProcessor {
+public class TestUploadFileDataRunnable {
   @BeforeEach
   public void setup() throws SQLException {
     Connection connector = UtilityForConnector.getOrInitializeConnection();
@@ -30,11 +30,10 @@ public class TestSetupProcessor {
   
   @Test
   public void willRunAndStop() {
-    SetupProcessor processor = new SetupProcessor();
-    processor.stopProcessor();
+    UploadFileDataRunnable processor = new UploadFileDataRunnable();
+    processor.finishedProcessing();
     processor.run();
-    
-    //TODO: Check nothing was input
+  
   }
   
   @Test
@@ -44,12 +43,12 @@ public class TestSetupProcessor {
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(1);
     ConfigurationManager.getConfiguration().setBatchMaxSize(100);
   
-    SetupProcessor processor = new SetupProcessor();
+    UploadFileDataRunnable processor = new UploadFileDataRunnable();
     Thread processorThread = new Thread(processor);
     processorThread.start();
-    
+  
     Thread.sleep(1500);
-    processor.stopProcessor();
+    processor.finishedProcessing();
     processorThread.join(5000);
     Assertions.assertFalse(processorThread.isAlive());
     MySqlConnectorTest.assertNumberItemsEqual(1);
@@ -62,11 +61,11 @@ public class TestSetupProcessor {
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(2);
   
-    SetupProcessor processor = new SetupProcessor();
+    UploadFileDataRunnable processor = new UploadFileDataRunnable();
     Thread processorThread = new Thread(processor);
     processorThread.start();
   
-    processor.stopProcessor();
+    processor.finishedProcessing();
     processorThread.join(5000);
     Assertions.assertFalse(processorThread.isAlive());
     MySqlConnectorTest.assertNumberItemsEqual(2);
@@ -79,12 +78,12 @@ public class TestSetupProcessor {
     ConcurrentQueues.hardDriveSetupQueue.add(fakeFile);
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(1000);
-    
-    SetupProcessor processor = new SetupProcessor();
+  
+    UploadFileDataRunnable processor = new UploadFileDataRunnable();
     Thread processorThread = new Thread(processor);
     processorThread.start();
-    
-    processor.stopProcessor();
+  
+    processor.finishedProcessing();
     processorThread.join(5000);
     Assertions.assertFalse(processorThread.isAlive());
     MySqlConnectorTest.assertNumberItemsEqual(1);
