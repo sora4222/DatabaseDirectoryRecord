@@ -5,7 +5,8 @@ import com.sora4222.database.connectors.DatabaseQuery;
 import com.sora4222.database.connectors.Deleter;
 import com.sora4222.database.connectors.Inserter;
 import com.sora4222.database.connectors.Updater;
-import com.sora4222.database.directory.SetupDirectoryScan;
+import com.sora4222.database.setup.ScanningTools;
+import com.sora4222.database.setup.SetupOrchestration;
 import com.sora4222.file.FileInformation;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,28 +96,35 @@ public class DirectoryRecorder {
       .collect(Collectors.toList());
   }
   
-  private static FileCommand watchEventToFileCommand(final WatchEvent watchEvent, final Path pathToDirectory) {
+  private static FileCommand watchEventToFileCommand(final WatchEvent watchEvent, final Path pathToDirectoryOrFile) {
     try {
-      @SuppressWarnings("unchecked") Path pathToFile = pathToDirectory.resolve(((WatchEvent<Path>) watchEvent).context());
+      @SuppressWarnings("unchecked") Path relativePathToDirectoryOrFile = pathToDirectoryOrFile.resolve(((WatchEvent<Path>) watchEvent).context());
+      addDirectoriesToWatchlist(relativePathToDirectoryOrFile);
       DatabaseCommand commandForChange = eventToCommandMap.get(watchEvent.kind());
       
       logger.debug("Command for change reported: " + commandForChange.toString());
-      if (checkForDeletion(pathToFile, commandForChange))
-        return new FileCommand(new FileInformation(pathToFile), commandForChange);
+      if (checkForDeletion(relativePathToDirectoryOrFile, commandForChange))
+        return new FileCommand(new FileInformation(relativePathToDirectoryOrFile), commandForChange);
       
-      FileInformation file = FileInformation.fromPath(pathToFile);
+      FileInformation file = FileInformation.fromPath(relativePathToDirectoryOrFile);
       if (!file.equals(FileInformation.EmptyFileInformation))
         return new FileCommand(file, commandForChange);
       else
         return new FileCommand(file, DatabaseCommand.BadEntry);
     } catch (ClassCastException e) {
-      logger.info("A watch event couldn't be cast to a path, directory path: " + pathToDirectory.toString());
+      logger.info("A watch event couldn't be cast to a path, directory path: " + pathToDirectoryOrFile.toString());
       return new FileCommand(null, DatabaseCommand.BadEntry);
     } catch (RuntimeException e) {
       logger.warn(e);
       return new FileCommand(null, DatabaseCommand.BadEntry);
     }
     
+  }
+  
+  private static void addDirectoriesToWatchlist(Path relativePathToDirectoryOrFile) {
+    if (Files.isDirectory(relativePathToDirectoryOrFile)) {
+      ScanningTools.subscribeToDirectory(relativePathToDirectoryOrFile);
+    }
   }
   
   private static boolean checkForDeletion(Path pathToFile, DatabaseCommand commandForChange) {
@@ -126,7 +134,7 @@ public class DirectoryRecorder {
   
   static void setupScanning() {
     logger.trace("setupScanning");
-    SetupDirectoryScan.walkThroughFolders();
+    SetupOrchestration.walkThroughFolders();
   }
   
   

@@ -13,7 +13,7 @@ import java.util.List;
 public class Deleter {
   private static Logger logger = LogManager.getLogger();
   private static String deleteCommand =
-      "DELETE FROM `directory_records` WHERE FileId IN (SELECT FileId FROM file_paths WHERE FilePath=?) AND ComputerId=?";
+    "DELETE FROM `directory_records` WHERE FileId IN (SELECT FileId FROM file_paths WHERE AbsoluteFilePath=?) AND ComputerId=?";
   
   public static void sendDeletesToDatabase (final List<FileInformation> filesInDBToDelete) {
     if(filesInDBToDelete.size() == 0)

@@ -24,7 +24,7 @@ public class DatabaseEntries {
   
   public List<FileInformation> getFiles() {
     String selectStatement =
-      "Select  file_paths.FilePath as FilePath ,FileHash, " +
+      "Select  file_paths.AbsoluteFilePath as FilePath ,FileHash, " +
         "DatabaseRowCreationTime, computer_names.ComputerName as ComputerName " +
         "FROM `directory_records` " +
         "Inner Join computer_names ON directory_records.ComputerId = computer_names.ComputerId " +
@@ -48,7 +48,7 @@ public class DatabaseEntries {
           files.getObject("DatabaseRowCreationTime", LocalDateTime.class);
         filesToOutput.add(
           new FileInformation(
-            files.getString("FilePath"),
+            files.getString("AbsoluteFilePath"),
             files.getString("FileHash"),
             rowCreationDate)
         );

@@ -32,16 +32,16 @@ public class TestSetupOrchestration {
   @BeforeEach
   public void emptyAllQueues() {
     ConcurrentQueues.visitedDirectoriesQueue.clear();
-    ConcurrentQueues.hardDriveSetupQueue.clear();
+    ConcurrentQueues.filesToUpload.clear();
   }
   
   @Test
   public void testFilesAreAdded() throws IOException {
     Files.walkFileTree(Paths.get("src/test/resources/root1/"), SetupOrchestration.visitor);
-    Assertions.assertEquals(4, ConcurrentQueues.hardDriveSetupQueue.size(),
+    Assertions.assertEquals(4, ConcurrentQueues.filesToUpload.size(),
       "The expected size was 4, actual: " +
-        ConcurrentQueues.hardDriveSetupQueue.size() +
-        "\n list:" + ConcurrentQueues.hardDriveSetupQueue.toString());
+        ConcurrentQueues.filesToUpload.size() +
+        "\n list:" + ConcurrentQueues.filesToUpload.toString());
   }
   
   @Test

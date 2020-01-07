@@ -15,8 +15,8 @@ public class Updater {
   private static Logger logger = LogManager.getLogger();
   private static String updateCommand =
       "UPDATE `directory_records` SET FileHash=? " +
-          "WHERE FileId IN (SELECT FileId FROM file_paths WHERE FilePath = ?) " +
-          "AND ComputerId=?";
+        "WHERE FileId IN (SELECT FileId FROM file_paths WHERE AbsoluteFilePath = ?) " +
+        "AND ComputerId=?";
   
   public static void sendUpdatesToDatabase (final List<FileInformation> filesInDBToUpdate) {
     if(filesInDBToUpdate.size() == 0)

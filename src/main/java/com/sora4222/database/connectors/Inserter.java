@@ -14,14 +14,14 @@ import java.util.List;
 public class Inserter {
   private static Logger logger = LogManager.getLogger();
   @SuppressWarnings("SqlResolve")
-  private static final String insertFileSql = "INSERT IGNORE INTO `file_paths` (FilePath) " +
-      "SELECT ? " +  // This select defines the FilePath to be inserted
-      "WHERE (SELECT COUNT(FilePath) FROM  `file_paths` WHERE FilePath = ?) = 0";
+  private static final String insertFileSql = "INSERT IGNORE INTO `file_paths` (AbsoluteFilePath) " +
+    "SELECT ? " +  // This select defines the FilePath to be inserted
+    "WHERE (SELECT COUNT(AbsoluteFilePath) FROM  `file_paths` WHERE AbsoluteFilePath = ?) = 0";
   private static final String insertionRecordSql =
-      "INSERT IGNORE INTO `directory_records` (ComputerId, FileId, FileHash) " +
-          "VALUES (?, (SELECT FileId FROM file_paths WHERE FilePath = ?), ?)";
+    "INSERT IGNORE INTO `directory_records` (ComputerId, FileId, FileHash) " +
+      "VALUES (?, (SELECT FileId FROM file_paths WHERE AbsoluteFilePath = ?), ?)";
   
-  private static final String insertDirectory = "INSERT IGNORE INTO `directories_stored` (directories_stored.AbsoluteFilePath, directories_stored.ComputerIdNumber) VALUES (?, ?)";
+  private static final String insertDirectory = "INSERT IGNORE INTO `directories_stored` (AbsoluteFilePath, ComputerId) VALUES (?, ?)";
   
   /**
    * Inserts a list of files into the directory database.
@@ -70,7 +70,7 @@ public class Inserter {
         insertionSql.setString(2, file.getFullLocationAsLinuxBasedString());
         insertionSql.addBatch();
       }
-      logger.debug("SQL statement for insertion: " + insertionSql.toString());
+      logger.debug("SQL statement for insertion (files): " + insertionSql.toString());
   
       insertionSql.executeBatch();
       databaseConnection.commit();
@@ -88,10 +88,10 @@ public class Inserter {
       PreparedStatement insertionSql = databaseConnection.prepareStatement(insertDirectory);
       for (Path path : directoriesToInsert) {
         insertionSql.setString(1, path.toAbsolutePath().toString().replace("\\", "/"));
-        insertionSql.setInt(1, ComputerProperties.computerNameId.get());
+        insertionSql.setInt(2, ComputerProperties.computerNameId.get());
         insertionSql.addBatch();
       }
-      logger.debug("SQL statement for insertion: " + insertionSql.toString());
+      logger.debug("SQL statement for insertion (directories): " + insertionSql.toString());
       insertionSql.executeBatch();
     } catch (SQLException e) {
       logger.error("Inserting directories");

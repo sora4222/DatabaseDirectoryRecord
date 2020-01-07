@@ -39,7 +39,7 @@ public class TestUploadFileDataRunnable {
   @Test
   public void outputsFilesOverTime() throws InterruptedException, SQLException {
     FileInformation fakeFile = new FileInformation("aFile.txt", "AFAKEHASH");
-    ConcurrentQueues.hardDriveSetupQueue.add(fakeFile);
+    ConcurrentQueues.filesToUpload.add(fakeFile);
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(1);
     ConfigurationManager.getConfiguration().setBatchMaxSize(100);
   
@@ -56,8 +56,8 @@ public class TestUploadFileDataRunnable {
   
   @Test
   public void outputsFilesOverBatch() throws InterruptedException, SQLException {
-    ConcurrentQueues.hardDriveSetupQueue.add(new FileInformation("aFile.txt", "AFAKEHASH"));
-    ConcurrentQueues.hardDriveSetupQueue.add(new FileInformation("aFile2.txt", "AFAKEHASH2"));
+    ConcurrentQueues.filesToUpload.add(new FileInformation("aFile.txt", "AFAKEHASH"));
+    ConcurrentQueues.filesToUpload.add(new FileInformation("aFile2.txt", "AFAKEHASH2"));
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(2);
   
@@ -75,7 +75,7 @@ public class TestUploadFileDataRunnable {
   @Test
   public void outputsFilesWillFlush() throws InterruptedException, SQLException {
     FileInformation fakeFile = new FileInformation("aFile.txt", "AFAKEHASH");
-    ConcurrentQueues.hardDriveSetupQueue.add(fakeFile);
+    ConcurrentQueues.filesToUpload.add(fakeFile);
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(1000);
   

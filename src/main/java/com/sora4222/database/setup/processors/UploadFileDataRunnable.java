@@ -1,28 +1,28 @@
-package com.sora4222.database.directory.processors;
+package com.sora4222.database.setup.processors;
 
 import com.sora4222.database.configuration.ConfigurationManager;
-import com.sora4222.database.connectors.DatabaseQuery;
 import com.sora4222.database.connectors.Inserter;
 import com.sora4222.file.FileInformation;
 import org.apache.commons.lang3.time.StopWatch;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class SetupProcessor implements Runnable {
+public class UploadFileDataRunnable implements Runnable, ProcessorThread {
   private final List<FileInformation> batchHold = new LinkedList<>();
-  private static final StopWatch elapsedTime = new StopWatch();
+  private final StopWatch elapsedTime = new StopWatch();
   private boolean stopProcessor;
   private static final Logger logger = LogManager.getLogger();
   
-  public SetupProcessor() {
+  public UploadFileDataRunnable() {
     stopProcessor = false;
   }
   
-  public synchronized void stopProcessor() {
+  public synchronized void finishedProcessing() {
     stopProcessor = true;
   }
   
@@ -43,22 +43,19 @@ public class SetupProcessor implements Runnable {
   }
   
   private void loopThroughFilesToAdd() {
-    do {
+    while (!stopProcessor || ConcurrentQueues.filesToUpload.size() != 0) {
       loadInFiles();
-  
       logger.debug("Time elapsed: " + elapsedTime.getTime(TimeUnit.SECONDS));
-      if (batchHold.size() >= ConfigurationManager.getConfiguration().getBatchMaxSize()
-          || elapsedTime.getTime(TimeUnit.SECONDS) >= ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()) {
-        restartTimer();
-        if (batchHold.size() == 0)
-          continue;
     
-        // Send the ones that are not in the database via updates or insert probably with another thread
-        insertFilesIntoDatabase();
+      if (batchHold.size() == 0) {
+        sleepOneSecond();
+        continue;
       }
-      sleepOneSecond();
-  
-    } while (!stopProcessor);
+    
+      // Send the files in batches to the database.
+      insertFilesIntoDatabase();
+    
+    }
   }
   
   private void sleepOneSecond() {
@@ -70,23 +67,23 @@ public class SetupProcessor implements Runnable {
   }
   
   private void loadInFiles() {
-    FileInformation result;
+    Path result;
     while (batchHold.size() < ConfigurationManager.getConfiguration().getBatchMaxSize()
-        && elapsedTime.getTime(TimeUnit.SECONDS) < ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()
-        && (result = ConcurrentQueues.hardDriveSetupQueue.poll()) != null) {
+      && elapsedTime.getTime(TimeUnit.SECONDS) < ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds()
+      && (result = ConcurrentQueues.filesToUpload.poll()) != null) {
+    
+      // Loads the file as a FileInformation
       logger.debug("Adding a file to SetupProcessor batch.");
-      batchHold.add(result);
+      batchHold.add(FileInformation.fromPath(result));
     }
   }
   
-  private void restartTimer() {
-    elapsedTime.reset();
-    elapsedTime.start();
-  }
-  
+  /**
+   * Adds the files into the database.
+   */
   private void insertFilesIntoDatabase() {
     logger.info("Sending batch for setup");
-    Inserter.insertRecordIntoDatabase(DatabaseQuery.queryTheDatabaseForFiles(batchHold));
+    Inserter.insertRecordIntoDatabase(batchHold);
     logger.info("A batch of files for setup has been sent.");
     batchHold.clear();
   }

@@ -1,4 +1,4 @@
-package com.sora4222.database.directory;
+package com.sora4222.database.setup;
 
 import com.sora4222.database.DatabaseCommand;
 import com.sora4222.database.DatabaseWrapper;
