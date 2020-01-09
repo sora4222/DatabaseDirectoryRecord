@@ -10,7 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -110,11 +113,6 @@ public class TestDirectoryVisitedSaverRunnable {
     ResultSet rs = prepStatement.executeQuery();
     Assertions.assertTrue(rs.next());
     return rs.getInt("count");
-  }
-  
-  @Test
-  public void walker() throws IOException {
-    Files.walkFileTree(Paths.get("E:\\Downloads\\"), visitor);
   }
   
 }

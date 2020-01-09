@@ -11,19 +11,22 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ExistingFileFilter implements ProcessorThread, Runnable {
+public class ExistingFileFilterRunnable implements ProcessorThread, Runnable {
   private static final Logger logger = LogManager.getLogger();
   private final List<Path> batchHold = new LinkedList<>();
   private final StopWatch elapsedTime = new StopWatch();
   private boolean stopProcessor;
+  private final UploadFileDataRunnable uploadFileDataRunnable = new UploadFileDataRunnable();
+  private final Thread uploadFileThread;
   
   /**
    * Creates a {@link Runnable} that will query files in the queue filesToFilter
    * within {@link ConcurrentQueues}. All files that do not exist are passed to the
    * queue filesToUpload.
    */
-  public ExistingFileFilter() {
+  public ExistingFileFilterRunnable() {
     stopProcessor = false;
+    uploadFileThread = new Thread(uploadFileDataRunnable);
   }
   
   @Override
@@ -33,19 +36,27 @@ public class ExistingFileFilter implements ProcessorThread, Runnable {
   
   @Override
   public void run() {
-    while (stopProcessor) {
+    uploadFileThread.start();
+    while (!stopProcessor) {
       logger.debug("Configuration batch time: " + ConfigurationManager.getConfiguration().getBatchMaxTimeSeconds());
       logger.debug("Configuration batch size: " + ConfigurationManager.getConfiguration().getBatchMaxSize());
-      
+    
+    
       elapsedTime.start();
-      
+    
       loopThroughFilesToAdd();
-      
+    
       if (batchHold.size() != 0)
         ConcurrentQueues.filesToUpload.addAll(DatabaseQuery.checkFilePathsExists(batchHold));
-      
+    
       elapsedTime.reset();
       logger.info("The setup processor has shutdown.");
+    }
+    uploadFileDataRunnable.finishedProcessing();
+    try {
+      uploadFileThread.join();
+    } catch (InterruptedException e) {
+      logger.error("Exception occurred waiting for the UploadFileDataRunnable thread to stop." + e.getMessage());
     }
   }
   

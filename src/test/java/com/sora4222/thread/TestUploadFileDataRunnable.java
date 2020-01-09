@@ -6,12 +6,12 @@ import com.sora4222.database.connectors.MySqlConnectorTest;
 import com.sora4222.database.connectors.UtilityForConnector;
 import com.sora4222.database.setup.processors.ConcurrentQueues;
 import com.sora4222.database.setup.processors.UploadFileDataRunnable;
-import com.sora4222.file.FileInformation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -38,8 +38,7 @@ public class TestUploadFileDataRunnable {
   
   @Test
   public void outputsFilesOverTime() throws InterruptedException, SQLException {
-    FileInformation fakeFile = new FileInformation("aFile.txt", "AFAKEHASH");
-    ConcurrentQueues.filesToUpload.add(fakeFile);
+    ConcurrentQueues.filesToUpload.add(Paths.get("src/test/resources/tempConstant.txt"));
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(1);
     ConfigurationManager.getConfiguration().setBatchMaxSize(100);
   
@@ -56,8 +55,8 @@ public class TestUploadFileDataRunnable {
   
   @Test
   public void outputsFilesOverBatch() throws InterruptedException, SQLException {
-    ConcurrentQueues.filesToUpload.add(new FileInformation("aFile.txt", "AFAKEHASH"));
-    ConcurrentQueues.filesToUpload.add(new FileInformation("aFile2.txt", "AFAKEHASH2"));
+    ConcurrentQueues.filesToUpload.add(Paths.get("src/test/resources/tempConstant.txt"));
+    ConcurrentQueues.filesToUpload.add(Paths.get("src/test/resources/root1/sharedFile1.txt"));
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(2);
   
@@ -74,8 +73,7 @@ public class TestUploadFileDataRunnable {
   
   @Test
   public void outputsFilesWillFlush() throws InterruptedException, SQLException {
-    FileInformation fakeFile = new FileInformation("aFile.txt", "AFAKEHASH");
-    ConcurrentQueues.filesToUpload.add(fakeFile);
+    ConcurrentQueues.filesToUpload.add(Paths.get("src/test/resources/root1/sharedFile1.txt"));
     ConfigurationManager.getConfiguration().setBatchMaxTimeSeconds(100);
     ConfigurationManager.getConfiguration().setBatchMaxSize(1000);
   

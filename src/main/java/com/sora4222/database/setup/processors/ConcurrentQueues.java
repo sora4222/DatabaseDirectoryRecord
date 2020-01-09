@@ -5,13 +5,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ConcurrentQueues {
   /**
-   * Used
+   * Used to take what files need to be uploaded
    */
   public static final ConcurrentLinkedQueue<Path> filesToUpload
     = new ConcurrentLinkedQueue<>();
   
   /**
    * Used with a thread to query whether a file exists in the database.
+   * filesToQuery -> filesToUpload
    */
   @SuppressWarnings("WeakerAccess")
   public static final ConcurrentLinkedQueue<Path> filesToQuery = new ConcurrentLinkedQueue<>();

@@ -73,7 +73,7 @@ public class UploadFileDataRunnable implements Runnable, ProcessorThread {
       && (result = ConcurrentQueues.filesToUpload.poll()) != null) {
     
       // Loads the file as a FileInformation
-      logger.debug("Adding a file to SetupProcessor batch.");
+      logger.debug("Adding a file to SetupProcessor batch: " + result.toString());
       batchHold.add(FileInformation.fromPath(result));
     }
   }

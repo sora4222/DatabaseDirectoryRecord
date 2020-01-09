@@ -33,7 +33,6 @@ public class Inserter {
     insertFilesToFileTable(filesToInsert);
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
-      databaseConnection.setAutoCommit(false);
       PreparedStatement insertionSql = databaseConnection
           .prepareStatement(insertionRecordSql);
       
@@ -43,25 +42,24 @@ public class Inserter {
         insertionSql.setInt(1, ComputerProperties.computerNameId.get());
         insertionSql.setString(2, file.getFullLocationAsLinuxBasedString());
         insertionSql.setString(3, file.getFileHash());
-        
+  
         insertionSql.addBatch();
       }
-      
+  
       logger.info("SQL statement for insertion: " + insertionSql.toString());
       insertionSql.executeBatch();
-      databaseConnection.commit();
-      databaseConnection.setAutoCommit(true);
     } catch (SQLException e) {
-      rollbackDatabase(databaseConnection);
       logger.error("During an insertion statement there has been an SQL exception: ", e);
       throw new RuntimeException(e);
+    } catch (NullPointerException e) {
+      logger.error("A null pointer exception occurred in the insertRecordIntoDatabase: " + e.toString());
+      throw e;
     }
   }
   
   private static void insertFilesToFileTable(List<FileInformation> filesToInsert) {
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
-      databaseConnection.setAutoCommit(false);
       PreparedStatement insertionSql = databaseConnection
           .prepareStatement(insertFileSql);
       
@@ -73,12 +71,12 @@ public class Inserter {
       logger.debug("SQL statement for insertion (files): " + insertionSql.toString());
   
       insertionSql.executeBatch();
-      databaseConnection.commit();
-      databaseConnection.setAutoCommit(true);
     } catch (SQLException e) {
-      rollbackDatabase(databaseConnection);
       logger.error("During an insertion statement there has been an SQL exception: ", e);
       throw new RuntimeException(e);
+    } catch (NullPointerException e) {
+      logger.error("A null pointer exception occurred in the insertFilesToFileTable: " + e.toString());
+      throw e;
     }
   }
   
@@ -95,15 +93,6 @@ public class Inserter {
       insertionSql.executeBatch();
     } catch (SQLException e) {
       logger.error("Inserting directories");
-    }
-  }
-  
-  private static void rollbackDatabase(Connection databaseConnection) {
-    try {
-      databaseConnection.rollback();
-      databaseConnection.setAutoCommit(true);
-    } catch (SQLException e) {
-      logger.error("A rollback for insert into database has failed", e);
     }
   }
 }

@@ -2,7 +2,10 @@ package com.sora4222.database.setup;
 
 import com.sora4222.database.DirectoryRecorder;
 import com.sora4222.database.configuration.ConfigurationManager;
-import com.sora4222.database.setup.processors.*;
+import com.sora4222.database.setup.processors.ConcurrentQueues;
+import com.sora4222.database.setup.processors.DirectoryVisitedSaverRunnable;
+import com.sora4222.database.setup.processors.ExistingFileFilterRunnable;
+import com.sora4222.database.setup.processors.ProcessorThread;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,7 +39,7 @@ public class SetupOrchestration {
     public FileVisitResult visitFile(Path path, BasicFileAttributes basicFileAttributes) {
       if (Files.isReadable(path) && DirectoryRecorder.filterPathsBasedOnRegexExcludes(path)
         && Files.isRegularFile(path)) {
-        ConcurrentQueues.filesToUpload.add(path);
+        ConcurrentQueues.filesToQuery.add(path);
       }
   
       return FileVisitResult.CONTINUE;
@@ -66,19 +69,16 @@ public class SetupOrchestration {
    */
   public static void walkThroughFolders() {
     // Start the thread for processing
-    UploadFileDataRunnable uploadFileDataRunnable = new UploadFileDataRunnable();
-    Thread setupRunnableThread = new Thread(uploadFileDataRunnable);
-    
-    DirectoryVisitedSaverRunnable visitedSaverRunnable = new DirectoryVisitedSaverRunnable();
-    Thread visitedSaverRunnableThread = new Thread(visitedSaverRunnable);
-    
-    ExistingFileFilter existingFileFilterRunnable = new ExistingFileFilter();
+  
+    DirectoryVisitedSaverRunnable directoryVisitedSaverRunnable = new DirectoryVisitedSaverRunnable();
+    Thread visitedSaverRunnableThread = new Thread(directoryVisitedSaverRunnable);
+  
+    ExistingFileFilterRunnable existingFileFilterRunnable = new ExistingFileFilterRunnable();
     Thread existingFileFilterThread = new Thread(existingFileFilterRunnable);
-    
+  
     existingFileFilterThread.start();
     visitedSaverRunnableThread.start();
-    setupRunnableThread.start();
-    
+  
     //Subscribe to directories for the first time and seed
     for (Path confDirPath : ConfigurationManager.getConfiguration().getRootLocationsAsPaths()) {
       try {
@@ -91,9 +91,8 @@ public class SetupOrchestration {
         logger.error("An IOException occurred whilst scanning the file tree.", e);
       }
     }
-    
-    stopProcessorThreads(uploadFileDataRunnable);
-    stopProcessorThreads(visitedSaverRunnable);
+  
+    stopProcessorThreads(directoryVisitedSaverRunnable);
     stopProcessorThreads(existingFileFilterRunnable);
   }
   
