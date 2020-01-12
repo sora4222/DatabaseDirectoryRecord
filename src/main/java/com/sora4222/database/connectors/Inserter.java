@@ -21,20 +21,26 @@ public class Inserter {
     "INSERT IGNORE INTO `directory_records` (ComputerId, FileId, FileHash) " +
       "VALUES (?, (SELECT FileId FROM file_paths WHERE AbsoluteFilePath = ?), ?)";
   
-  private static final String insertDirectory = "INSERT IGNORE INTO `directories_stored` (AbsoluteFilePath, ComputerId) VALUES (?, ?)";
+  private static final String insertDirectory =
+    "INSERT IGNORE INTO `directories_stored` (AbsoluteFilePath, ComputerId) VALUES (?, ?)";
+  
+  public static void insertRecordIntoDatabase(List<FileInformation> filesToInsert) {
+    insertRecordIntoDatabase(ConnectionStorage.getConnection(), filesToInsert);
+  }
   
   /**
    * Inserts a list of files into the directory database.
+   * Will take the files passed and insert the path into the file path table,
+   * and then insert the rest of the file information into the main table.
    */
-  public static void insertRecordIntoDatabase(List<FileInformation> filesToInsert) {
+  public static void insertRecordIntoDatabase(Connection databaseConnection, List<FileInformation> filesToInsert) {
     if (filesToInsert.size() == 0)
       return;
     
     insertFilesToFileTable(filesToInsert);
-    Connection databaseConnection = ConnectionStorage.getConnection();
     try {
       PreparedStatement insertionSql = databaseConnection
-          .prepareStatement(insertionRecordSql);
+        .prepareStatement(insertionRecordSql);
       
       logger.debug("Files to insert in database count: " + filesToInsert.size());
       
@@ -57,11 +63,17 @@ public class Inserter {
     }
   }
   
+  /**
+   * Inserts the file name component into the database.
+   * This is done separate from the insertRecordIntoDatabase which adds the computer and hash components.
+   *
+   * @param filesToInsert the files that will have their path inserted.
+   */
   private static void insertFilesToFileTable(List<FileInformation> filesToInsert) {
     Connection databaseConnection = ConnectionStorage.getConnection();
     try {
       PreparedStatement insertionSql = databaseConnection
-          .prepareStatement(insertFileSql);
+        .prepareStatement(insertFileSql);
       
       for (FileInformation file : filesToInsert) {
         insertionSql.setString(1, file.getFullLocationAsLinuxBasedString());
@@ -69,7 +81,7 @@ public class Inserter {
         insertionSql.addBatch();
       }
       logger.debug("SQL statement for insertion (files): " + insertionSql.toString());
-  
+      
       insertionSql.executeBatch();
     } catch (SQLException e) {
       logger.error("During an insertion statement there has been an SQL exception: ", e);
@@ -80,8 +92,7 @@ public class Inserter {
     }
   }
   
-  public static void insertDirectoriesToDirectoryTable(List<Path> directoriesToInsert) {
-    Connection databaseConnection = ConnectionStorage.getConnection();
+  public static void insertDirectoriesToDirectoryTable(List<Path> directoriesToInsert, Connection databaseConnection) {
     try {
       PreparedStatement insertionSql = databaseConnection.prepareStatement(insertDirectory);
       for (Path path : directoriesToInsert) {

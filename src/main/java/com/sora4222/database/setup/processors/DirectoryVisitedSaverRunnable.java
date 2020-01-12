@@ -1,5 +1,6 @@
 package com.sora4222.database.setup.processors;
 
+import com.sora4222.database.connectors.DatabaseConnectionInstanceThreaded;
 import com.sora4222.database.connectors.Inserter;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -13,9 +14,12 @@ public class DirectoryVisitedSaverRunnable implements Runnable, ProcessorThread 
   private final StopWatch timer = new StopWatch();
   private final LinkedList<Path> directoriesBatch = new LinkedList<>();
   private boolean finishedVisitingDirectories;
+  private DatabaseConnectionInstanceThreaded conn;
   
   public DirectoryVisitedSaverRunnable() {
     this.finishedVisitingDirectories = false;
+  
+    conn = new DatabaseConnectionInstanceThreaded();
   }
   
   @Override
@@ -39,7 +43,9 @@ public class DirectoryVisitedSaverRunnable implements Runnable, ProcessorThread 
   private void fillDirectoryBatch() {
     int i = 0;
     Path directoryToAdd;
-    while (i++ < MAX_BATCH_SIZE && timer.getTime(TimeUnit.SECONDS) <= MAX_WAIT_TIME && (directoryToAdd = ConcurrentQueues.visitedDirectoriesQueue.poll()) != null) {
+    while (i++ < MAX_BATCH_SIZE &&
+      timer.getTime(TimeUnit.SECONDS) <= MAX_WAIT_TIME &&
+      (directoryToAdd = ConcurrentQueues.visitedDirectoriesQueue.poll()) != null) {
       directoriesBatch.add(directoryToAdd);
     }
   }
@@ -49,7 +55,7 @@ public class DirectoryVisitedSaverRunnable implements Runnable, ProcessorThread 
   }
   
   private void storeDirectories() {
-    Inserter.insertDirectoriesToDirectoryTable(directoriesBatch);
+    Inserter.insertDirectoriesToDirectoryTable(directoriesBatch, conn.getConnection());
   }
   
   @Override

@@ -1,6 +1,7 @@
 package com.sora4222.database.setup.processors;
 
 import com.sora4222.database.configuration.ConfigurationManager;
+import com.sora4222.database.connectors.DatabaseConnectionInstanceThreaded;
 import com.sora4222.database.connectors.Inserter;
 import com.sora4222.file.FileInformation;
 import org.apache.commons.lang3.time.StopWatch;
@@ -18,8 +19,11 @@ public class UploadFileDataRunnable implements Runnable, ProcessorThread {
   private boolean stopProcessor;
   private static final Logger logger = LogManager.getLogger();
   
+  private final DatabaseConnectionInstanceThreaded conn;
+  
   public UploadFileDataRunnable() {
     stopProcessor = false;
+    conn = new DatabaseConnectionInstanceThreaded();
   }
   
   public synchronized void finishedProcessing() {
@@ -83,7 +87,7 @@ public class UploadFileDataRunnable implements Runnable, ProcessorThread {
    */
   private void insertFilesIntoDatabase() {
     logger.info("Sending batch for setup");
-    Inserter.insertRecordIntoDatabase(batchHold);
+    Inserter.insertRecordIntoDatabase(conn.getConnection(), batchHold);
     logger.info("A batch of files for setup has been sent.");
     batchHold.clear();
   }
