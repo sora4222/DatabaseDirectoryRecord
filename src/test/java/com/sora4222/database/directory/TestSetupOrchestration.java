@@ -27,6 +27,8 @@ public class TestSetupOrchestration {
     logger.info(Files.deleteIfExists(add1.toAbsolutePath()));
     logger.info(Files.deleteIfExists(add2.toAbsolutePath()));
     logger.info(Files.deleteIfExists(add3.toAbsolutePath()));
+    ConcurrentQueues.filesToQuery.clear();
+    ConcurrentQueues.filesToUpload.clear();
   }
   
   @BeforeEach

@@ -5,6 +5,7 @@ import com.sora4222.database.configuration.ConfigurationManager;
 import com.sora4222.database.configuration.UtilityForConfig;
 import com.sora4222.database.connectors.ConnectionStorage;
 import com.sora4222.database.connectors.UtilityForConnector;
+import com.sora4222.database.setup.processors.ConcurrentQueues;
 import org.junit.jupiter.api.*;
 
 import java.io.File;
@@ -54,6 +55,14 @@ public class SystemTest {
   public void deleteFile() {
     if (temporaryFile.exists() && temporaryFile.isFile())
       temporaryFile.delete();
+  }
+  
+  @AfterEach
+  @BeforeEach
+  public void emptyQueues() {
+    ConcurrentQueues.filesToUpload.clear();
+    ConcurrentQueues.filesToQuery.clear();
+    ConcurrentQueues.visitedDirectoriesQueue.clear();
   }
   
   private ResultSet getDatabaseContents() throws SQLException {
