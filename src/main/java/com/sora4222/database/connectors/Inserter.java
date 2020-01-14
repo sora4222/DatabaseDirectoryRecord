@@ -26,6 +26,7 @@ public class Inserter {
   
   public static void insertRecordIntoDatabase(List<FileInformation> filesToInsert) {
     insertRecordIntoDatabase(ConnectionStorage.getConnection(), filesToInsert);
+    ConnectionStorage.close();
   }
   
   /**

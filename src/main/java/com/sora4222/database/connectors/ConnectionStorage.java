@@ -38,6 +38,7 @@ public class ConnectionStorage {
     logger.debug("config jdbcConnectionUrl: " + ConfigurationManager.getConfiguration().getJdbcConnectionUrl());
     if (ConfigurationManager.getConfiguration().isJdbcConnectionUrlNotSet())
       throw new NoSuchFieldException("The jdbcConnectionUrl is not set in the configuration settings.");
+  
     connect = DriverManager
       .getConnection(
         ConfigurationManager.getConfiguration().getJdbcConnectionUrl() + "?serverTimezone=Australia/Melbourne&allowMultiQueries=true",

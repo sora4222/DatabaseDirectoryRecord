@@ -38,10 +38,10 @@ public class TestSetupOrchestration {
   @Test
   public void testFilesAreAdded() throws IOException {
     Files.walkFileTree(Paths.get("src/test/resources/root1/"), SetupOrchestration.visitor);
-    Assertions.assertEquals(4, ConcurrentQueues.filesToUpload.size(),
+    Assertions.assertEquals(4, ConcurrentQueues.filesToQuery.size(),
       "The expected size was 4, actual: " +
-        ConcurrentQueues.filesToUpload.size() +
-        "\n list:" + ConcurrentQueues.filesToUpload.toString());
+        ConcurrentQueues.filesToQuery.size() +
+        "\n list:" + ConcurrentQueues.filesToQuery.toString());
   }
   
   @Test

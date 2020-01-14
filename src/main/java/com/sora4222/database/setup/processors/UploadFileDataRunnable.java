@@ -39,8 +39,11 @@ public class UploadFileDataRunnable implements Runnable, ProcessorThread {
   
     loopThroughFilesToAdd();
   
-    if (batchHold.size() != 0)
+    if (batchHold.size() != 0) {
       insertFilesIntoDatabase();
+      conn.close();
+    }
+  
   
     elapsedTime.reset();
     logger.info("The setup processor has shutdown.");
@@ -55,10 +58,9 @@ public class UploadFileDataRunnable implements Runnable, ProcessorThread {
         sleepOneSecond();
         continue;
       }
-    
+  
       // Send the files in batches to the database.
       insertFilesIntoDatabase();
-    
     }
   }
   
@@ -91,5 +93,4 @@ public class UploadFileDataRunnable implements Runnable, ProcessorThread {
     logger.info("A batch of files for setup has been sent.");
     batchHold.clear();
   }
-  
 }

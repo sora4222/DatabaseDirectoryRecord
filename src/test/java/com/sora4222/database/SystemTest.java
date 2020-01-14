@@ -172,7 +172,7 @@ public class SystemTest {
   public void regularExpressionsAreFilteredOnActivity() throws IOException, SQLException, InterruptedException {
     UtilityForConfig.clearConfig();
     System.setProperty("config", LOCATION_OF_ROOT_ONE_ROOT_TWO_EXCLUDE);
-    
+    System.out.println("Connection status: " + ConnectionStorage.getConnection().isClosed());
     DirectoryRecorder.setupScanning();
     // Make a file matching a regex
     temporaryFile = new File("src/test/resources/root1/sharedFile3AMassOfString.txt");
