@@ -23,7 +23,7 @@ public class FileHasherSimplePerformanceTests {
   
   @BeforeAll
   public static void createAllTemporaryFiles() {
-    verySmallFile = FileHasherTest.createFileWithByteSize(40000 - 1, "src/test/resources/tempVerySmallFile.txt");
+    verySmallFile = FileHasherTest.createFileWithByteSize(FileHasher.smallFileSize - 1, "src/test/resources/tempVerySmallFile.txt");
     smallFile = FileHasherTest.createFileWithByteSize(1000000 - 1, "src/test/resources/tempSmallFile.txt");
     megabyteFile = FileHasherTest.createFileWithByteSize(100000000 - 1, "src/test/resources/tempMegabyteFile.txt");
     gigabyteFile = FileHasherTest.createFileWithByteSize(1000000000 - 1, "src/test/resources/tempGigaFile.txt");
@@ -102,7 +102,7 @@ public class FileHasherSimplePerformanceTests {
   }
   
   private Double getListAverage(final LinkedList<Double> timeList) {
-    Double sum = timeList.stream().reduce(0.0, (a, b) -> a + b);
+    @SuppressWarnings("Convert2MethodRef") Double sum = timeList.stream().reduce(0.0, (a, b) -> a + b);
     int count = timeList.size();
     return sum / count;
   }

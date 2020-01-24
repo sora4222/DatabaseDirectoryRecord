@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class TestUploadFileDataRunnable {
   @BeforeEach
@@ -43,12 +44,12 @@ public class TestUploadFileDataRunnable {
     ConfigurationManager.getConfiguration().setBatchMaxSize(100);
   
     UploadFileDataRunnable processor = new UploadFileDataRunnable();
-    Thread processorThread = new Thread(processor);
+    Thread processorThread = new Thread(processor, "UploadFileDataRunnable" + UUID.randomUUID().toString().subSequence(0,4));
     processorThread.start();
   
     Thread.sleep(1500);
     processor.finishedProcessing();
-    processorThread.join(5000);
+    processorThread.join();
     Assertions.assertFalse(processorThread.isAlive());
     MySqlConnectorTest.assertNumberItemsEqual(1);
   }
@@ -65,7 +66,7 @@ public class TestUploadFileDataRunnable {
     processorThread.start();
   
     processor.finishedProcessing();
-    processorThread.join(5000);
+    processorThread.join();
     Assertions.assertFalse(processorThread.isAlive());
     MySqlConnectorTest.assertNumberItemsEqual(2);
   
@@ -82,7 +83,7 @@ public class TestUploadFileDataRunnable {
     processorThread.start();
   
     processor.finishedProcessing();
-    processorThread.join(5000);
+    processorThread.join();
     Assertions.assertFalse(processorThread.isAlive());
     MySqlConnectorTest.assertNumberItemsEqual(1);
   

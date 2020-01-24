@@ -16,7 +16,8 @@ public class FileHasher {
   private final RandomAccessFile fileToHash;
   
   private int multiplier;
-  
+  public static final int smallFileSize = 10000;
+
   /**
    * Creates a FileHasher that takes a number of a files bytes
    * and calculates a cryptographic hash from it.
@@ -78,7 +79,7 @@ public class FileHasher {
     final int megabyte = 1000000;
     final int gigabyte = 1000000000;
     try {
-      if (fileToHash.length() < 40000) {
+      if (fileToHash.length() < smallFileSize) {
         multiplier = 1;
       } else if (fileToHash.length() < megabyte) {
         multiplier = 5;

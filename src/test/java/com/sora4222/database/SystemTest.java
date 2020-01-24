@@ -189,7 +189,7 @@ public class SystemTest {
     writer.write(UUID.randomUUID().toString());
     writer.close();
     
-    Thread.sleep(1000);
+    Thread.sleep(3000);
     DirectoryRecorder.scanOnce();
     
     // Shouldn't contain the shared files except the one I just put in.

@@ -67,7 +67,7 @@ public class TestDirectoryVisitedSaverRunnable {
     thread.start();
     TimeUnit.SECONDS.sleep(5);
     directoryRunnable.finishedProcessing();
-    thread.join(1000);
+    thread.join();
     
     Assertions.assertEquals(0, getCountDirectories());
   }
@@ -102,7 +102,7 @@ public class TestDirectoryVisitedSaverRunnable {
     ConcurrentQueues.visitedDirectoriesQueue.add(Paths.get("newFolder2"));
     
     directoryRunnable.finishedProcessing();
-    thread.join(1000);
+    thread.join();
     
     Assertions.assertEquals(4, getCountDirectories());
   }

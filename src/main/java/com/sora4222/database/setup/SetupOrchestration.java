@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collections;
+import java.util.UUID;
 
 import static com.sora4222.database.setup.ScanningTools.subscribeToDirectory;
 
@@ -71,10 +72,10 @@ public class SetupOrchestration {
     // Start the thread for processing
   
     DirectoryVisitedSaverRunnable directoryVisitedSaverRunnable = new DirectoryVisitedSaverRunnable();
-    Thread visitedSaverRunnableThread = new Thread(directoryVisitedSaverRunnable);
+    Thread visitedSaverRunnableThread = new Thread(directoryVisitedSaverRunnable, "directoryVisitedSaverT" + UUID.randomUUID().toString().subSequence(0,4));
   
     ExistingFileFilterRunnable existingFileFilterRunnable = new ExistingFileFilterRunnable();
-    Thread existingFileFilterThread = new Thread(existingFileFilterRunnable);
+    Thread existingFileFilterThread = new Thread(existingFileFilterRunnable, "existingFileFilterThread" + UUID.randomUUID().toString().subSequence(0,4));
   
     existingFileFilterThread.start();
     visitedSaverRunnableThread.start();
@@ -91,12 +92,16 @@ public class SetupOrchestration {
         logger.error("An IOException occurred whilst scanning the file tree.", e);
       }
     }
-  
-    stopProcessorThreads(directoryVisitedSaverRunnable);
-    stopProcessorThreads(existingFileFilterRunnable);
+    try {
+      stopProcessorThreads(directoryVisitedSaverRunnable, visitedSaverRunnableThread);
+      stopProcessorThreads(existingFileFilterRunnable, existingFileFilterThread);
+    } catch (InterruptedException e) {
+      logger.error("An interrupted exception ");
+    }
   }
   
-  private static void stopProcessorThreads(ProcessorThread processor) {
+  private static void stopProcessorThreads(ProcessorThread processor, Thread correspondingThread) throws InterruptedException {
     processor.finishedProcessing();
+    correspondingThread.join();
   }
 }

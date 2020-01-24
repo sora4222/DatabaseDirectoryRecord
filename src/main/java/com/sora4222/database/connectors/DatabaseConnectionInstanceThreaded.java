@@ -50,8 +50,9 @@ public class DatabaseConnectionInstanceThreaded {
         ConfigurationManager.getConfiguration().getDatabaseUsername(),
         ConfigurationManager.getConfiguration().getDatabasePassword());
   }
-  
+
   public void close() {
+    logger.debug("Closing connection to database: " + Thread.currentThread().getName());
     try {
       conn.close();
     } catch (SQLException e) {

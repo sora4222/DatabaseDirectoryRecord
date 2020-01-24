@@ -55,7 +55,7 @@ public class DirectoryRecorder {
     }
   }
   
-  public static void sleepXMinutes(long x) {
+  private static void sleepXMinutes(long x) {
     try {
       TimeUnit.SECONDS.sleep(x);
     } catch (InterruptedException e) {

@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class ExistingFileFilterRunnable implements ProcessorThread, Runnable {
@@ -26,7 +27,8 @@ public class ExistingFileFilterRunnable implements ProcessorThread, Runnable {
    */
   public ExistingFileFilterRunnable() {
     stopProcessor = false;
-    uploadFileThread = new Thread(uploadFileDataRunnable);
+    uploadFileThread = new Thread(uploadFileDataRunnable,
+      "UploadFileDataThread" + UUID.randomUUID().toString().subSequence(0,4));
   }
   
   @Override
